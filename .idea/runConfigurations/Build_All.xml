@@ -1,0 +1,9 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Build All" type="CMakeRunConfiguration" factoryName="Application" singleton="true" PASS_PARENT_ENVS_2="true" PROJECT_NAME="SmothT1est" TARGET_NAME="esp32_test" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="SmothT1est" RUN_TARGET_NAME="esp32_test">
+    <envs />
+    <method>
+      <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="false" />
+      <option name="ToolBeforeRunTask" enabled="true" actionId="Tool_External Tools_ESP32 Build" />
+    </method>
+  </configuration>
+</component>

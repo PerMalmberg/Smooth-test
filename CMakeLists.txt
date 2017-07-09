@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.6)
-project(esp32_test)
+project(SmothT1est)
 
 set(CMAKE_CXX_STANDARD 14)
 
