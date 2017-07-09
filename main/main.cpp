@@ -8,6 +8,8 @@
 #include <smooth/ipc/Publisher.h>
 #include <esp_system.h>
 
+#include "wifi-creds.h"
+
 const gpio_num_t BLINK_GPIO = GPIO_NUM_5;
 
 using namespace smooth;
@@ -152,7 +154,7 @@ extern "C" void app_main()
     app.start();
 
     Wifi wifi;
-    wifi.connect_to_ap("HAP-ESP32", "Our place", "TOKInDUmeGaNHaG", true);
+    wifi.connect_to_ap("HAP-ESP32", WIFI_SSID, WIFI_PASSWORD, true);
 
     BlinkReceive r;
     r.start();
