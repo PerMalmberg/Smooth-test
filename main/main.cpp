@@ -51,12 +51,12 @@ class TestPacket : public ISendablePacket, public IReceivablePacket
             return complete;
         }
 
-        const char* get_data() override
+        const uint8_t* get_data() override
         {
             return buff;
         }
 
-        char* get_write_pos() override
+        uint8_t* get_write_pos() override
         {
             return buff + data_count;
         }
@@ -74,7 +74,7 @@ class TestPacket : public ISendablePacket, public IReceivablePacket
     private:
         int data_count = 0;
         bool complete = false;
-        char buff[5]{};
+        uint8_t buff[5]{};
 };
 
 class BlinkReceive
