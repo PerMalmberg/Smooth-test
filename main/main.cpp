@@ -7,6 +7,8 @@
 #include <smooth/Application.h>
 #include <smooth/ipc/Publisher.h>
 #include <esp_system.h>
+#include <smooth/network/ISendablePacket.h>
+#include <smooth/network/IReceivablePacket.h>
 
 #include "wifi-creds.h"
 
@@ -17,7 +19,7 @@ using namespace smooth::ipc;
 using namespace smooth::network;
 using namespace std::chrono;
 
-class TestPacket
+class TestPacket : public ISendablePacket, public IReceivablePacket
 {
     public:
         TestPacket()
@@ -27,7 +29,7 @@ class TestPacket
             buff[sizeof(buff) - 1] = '>';
         }
 
-        int get_wanted_amount()
+        int get_wanted_amount() override
         {
             return sizeof(buff) - data_count;
         }
@@ -44,27 +46,27 @@ class TestPacket
             ESP_LOGV("complete", "%d", complete);
         }
 
-        bool is_complete()
+        bool is_complete() override
         {
             return complete;
         }
 
-        const char* get_data()
+        const char* get_data() override
         {
             return buff;
         }
 
-        char* get_write_pos()
+        char* get_write_pos() override
         {
             return buff + data_count;
         }
 
-        bool is_framing_error()
+        bool is_error() override
         {
             return data_count > sizeof(buff);
         }
 
-        int get_send_length()
+        int get_send_length() override
         {
             return sizeof(buff);
         }
@@ -72,7 +74,7 @@ class TestPacket
     private:
         int data_count = 0;
         bool complete = false;
-        char buff[5];
+        char buff[5]{};
 };
 
 class BlinkReceive
