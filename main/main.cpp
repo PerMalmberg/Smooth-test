@@ -19,7 +19,8 @@ using namespace smooth::ipc;
 using namespace smooth::network;
 using namespace std::chrono;
 
-class TestPacket : public ISendablePacket, public IReceivablePacket
+class TestPacket
+        : public ISendablePacket, public IReceivablePacket
 {
     public:
         TestPacket()
@@ -80,16 +81,18 @@ class TestPacket : public ISendablePacket, public IReceivablePacket
 class BlinkReceive
         : public smooth::Task,
           public smooth::ipc::IEventListener<network::DataAvailable<TestPacket>>,
-          public smooth::ipc::IEventListener<network::TransmitBufferEmpty>
+          public smooth::ipc::IEventListener<network::TransmitBufferEmpty>,
+          public smooth::ipc::IEventListener<network::ConnectionStatus>
 {
     public:
         explicit BlinkReceive() :
                 Task("BlinkReceive", 14096, 5, milliseconds(10)),
                 txEmpty("txEmpty", 1, *this, *this),
                 data_available("data_available", 5, *this, *this),
+                connection_status("connection_status", 3, *this, *this),
                 tx(),
                 rx(),
-                s(tx, rx, txEmpty, data_available)
+                s(tx, rx, txEmpty, data_available, connection_status)
         {
             gpio_pad_select_gpio(BLINK_GPIO);
             gpio_set_direction(BLINK_GPIO, GPIO_MODE_OUTPUT);
@@ -138,9 +141,18 @@ class BlinkReceive
             }
         }
 
+        void message(const ConnectionStatus& msg) override
+        {
+            if(!msg.is_connected())
+            {
+                s.restart();
+            }
+        }
+
     private:
         TaskEventQueue<TransmitBufferEmpty> txEmpty;
         TaskEventQueue<DataAvailable<TestPacket>> data_available;
+        TaskEventQueue<ConnectionStatus> connection_status;
         smooth::network::PacketSendBuffer<TestPacket, 1> tx;
         smooth::network::PacketReceiveBuffer<TestPacket, 5> rx;
         smooth::network::Socket<TestPacket> s;
