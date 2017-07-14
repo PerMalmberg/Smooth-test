@@ -9,6 +9,7 @@
 #include <esp_system.h>
 #include <smooth/network/ISendablePacket.h>
 #include <smooth/network/IReceivablePacket.h>
+#include <smooth/network/SSLSocket.h>
 
 #include "wifi-creds.h"
 
@@ -35,7 +36,7 @@ class TestPacket
             return sizeof(buff) - data_count;
         }
 
-        void data_received(int length)
+        void data_received(int length) override
         {
             data_count += length;
             ESP_LOGV("data_count", "%d", data_count);
@@ -143,7 +144,7 @@ class BlinkReceive
 
         void message(const ConnectionStatus& msg) override
         {
-            if(!msg.is_connected())
+            if (!msg.is_connected())
             {
                 s.restart();
             }
@@ -159,6 +160,141 @@ class BlinkReceive
         bool stress = false;
 };
 
+class StreamingStringPacket
+        : public ISendablePacket, public IReceivablePacket
+{
+    public:
+        StreamingStringPacket() = default;
+
+        explicit StreamingStringPacket(const std::string& data)
+                : data(data)
+        {
+        }
+
+        // Must return the total amount of bytes to send
+        int get_send_length() override
+        {
+            return static_cast<int>(data.length());
+        }
+
+        // Must return a pointer to the data to be sent.
+        const uint8_t* get_data() override
+        {
+            return reinterpret_cast<const uint8_t*>(data.c_str());
+        }
+
+        // Must return the number of bytes the packet wants to fill
+        // its internal buffer, e.g. header, checksum etc. Returned
+        // value will differ depending on how much data already has been provided.
+        int get_wanted_amount() override
+        {
+            // Read byte by byte.
+            return 1;
+        }
+
+        // Used by the underlying framework to notify the packet that {length} bytes
+        // has been written to the buffer pointed to by get_write_pos().
+        // During the call to this method the packet should do whatever it needs to
+        // evaluate if it needs more data or if it is complete.
+        void data_received(int length) override
+        {
+            curr_len += length;
+            data += buff[0];
+            if( buff[0] == '\n' || buff[0] == '\r')
+            {
+                completed = true;
+            }
+        }
+
+        // Must return the current write position of the internal buffer.
+        // Must point to a buffer than can accept the number of bytes returned by
+        // get_wanted_amount().
+        uint8_t* get_write_pos() override
+        {
+            return buff;
+        }
+
+        // Must return true when the packet has received all data it needs
+        // to fully assemble.
+        bool is_complete() override
+        {
+            // Simply read in chunks of 50 for demo purposes.
+            return completed;
+        }
+
+        // Must return true whenever the packet is unable to correctly assemble
+        // based on received data.
+        bool is_error() override
+        {
+            return false;
+        }
+
+        const std::string& to_string()
+        {
+            return data;
+        }
+
+    private:
+        int curr_len = 0;
+        std::string data{};
+        uint8_t buff[2]{0, 0};
+        bool completed = false;
+};
+
+class SSLTest
+        : public smooth::Task,
+          public smooth::ipc::IEventListener<network::DataAvailable<StreamingStringPacket>>,
+          public smooth::ipc::IEventListener<network::TransmitBufferEmpty>,
+          public smooth::ipc::IEventListener<network::ConnectionStatus>
+{
+    public:
+        explicit SSLTest() :
+                Task("SSLTest", 4096, 5, milliseconds(10)),
+                txEmpty("txEmpty", 1, *this, *this),
+                data_available("data_available", 20, *this, *this),
+                connection_status("connection_status", 3, *this, *this),
+                tx(),
+                rx(),
+                s(tx, rx, txEmpty, data_available, connection_status)
+        {
+            auto ip = std::make_shared<IPv4>("172.217.18.142", 443);
+            s.start(ip);
+        }
+
+        void message(const DataAvailable<StreamingStringPacket>& msg) override
+        {
+            StreamingStringPacket data;
+            if (msg.get(data))
+            {
+                ESP_LOGV( "SSP", "%s", data.to_string().c_str());
+            }
+        }
+
+        void message(const TransmitBufferEmpty& msg) override
+        {
+            ESP_LOGV("SSP", "Packet sent");
+        }
+
+        void message(const ConnectionStatus& msg) override
+        {
+            if (!done && msg.is_connected())
+            {
+                done = true;
+                StreamingStringPacket sp("GET / HTTP/1.1\r\n\r\n");
+                tx.put(sp);
+            }
+        }
+
+    private:
+        TaskEventQueue<TransmitBufferEmpty> txEmpty;
+        TaskEventQueue<DataAvailable<StreamingStringPacket>> data_available;
+        TaskEventQueue<ConnectionStatus> connection_status;
+        smooth::network::PacketSendBuffer<StreamingStringPacket, 1> tx;
+        smooth::network::PacketReceiveBuffer<StreamingStringPacket, 50> rx;
+        smooth::network::SSLSocket<StreamingStringPacket> s;
+        bool done = false;
+};
+
 
 extern "C" void app_main()
 {
@@ -170,8 +306,11 @@ extern "C" void app_main()
     Wifi wifi;
     wifi.connect_to_ap("HAP-ESP32", WIFI_SSID, WIFI_PASSWORD, true);
 
-    BlinkReceive r;
-    r.start();
+ //   BlinkReceive r;
+ //   r.start();
+
+    SSLTest ssl_test;
+    ssl_test.start();
 
     SocketDispatcher::instance();
 
