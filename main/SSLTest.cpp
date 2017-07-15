@@ -9,7 +9,7 @@ using namespace smooth::network;
 SSLTest::SSLTest()
         : Task("SSLTest", 4096, 5, std::chrono::milliseconds(10)),
           txEmpty("txEmpty", 1, *this, *this),
-          data_available("data_available", 40, *this, *this),
+          data_available("data_available", 20, *this, *this),
           connection_status("connection_status", 3, *this, *this),
           tx(),
           rx(),

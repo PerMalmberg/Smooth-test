@@ -172,8 +172,8 @@ extern "C" void app_main()
     Wifi wifi;
     wifi.connect_to_ap("HAP-ESP32", WIFI_SSID, WIFI_PASSWORD, true);
 
- //   BlinkReceive r;
- //   r.start();
+    BlinkReceive r;
+    r.start();
 
     SSLTest ssl_test;
     ssl_test.start();
