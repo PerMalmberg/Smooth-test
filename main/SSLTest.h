@@ -14,18 +14,18 @@
 #include <smooth/network/SSLSocket.h>
 #include <smooth/network/IPv4.h>
 #include <smooth/Task.h>
-#include "StreamingStringPacket.h"
+#include "HTTPPacket.h"
 
 class SSLTest
         : public smooth::Task,
-          public smooth::ipc::IEventListener<smooth::network::DataAvailable<StreamingStringPacket>>,
+          public smooth::ipc::IEventListener<smooth::network::DataAvailable<HTTPPacket>>,
           public smooth::ipc::IEventListener<smooth::network::TransmitBufferEmpty>,
           public smooth::ipc::IEventListener<smooth::network::ConnectionStatus>
 {
     public:
         SSLTest();
 
-        void message(const smooth::network::DataAvailable<StreamingStringPacket>& msg) override;
+        void message(const smooth::network::DataAvailable<HTTPPacket>& msg) override;
 
         void message(const smooth::network::TransmitBufferEmpty& msg) override;
 
@@ -33,10 +33,10 @@ class SSLTest
 
     private:
         smooth::ipc::TaskEventQueue<smooth::network::TransmitBufferEmpty> txEmpty;
-        smooth::ipc::TaskEventQueue<smooth::network::DataAvailable<StreamingStringPacket>> data_available;
+        smooth::ipc::TaskEventQueue<smooth::network::DataAvailable<HTTPPacket>> data_available;
         smooth::ipc::TaskEventQueue<smooth::network::ConnectionStatus> connection_status;
-        smooth::network::PacketSendBuffer<StreamingStringPacket, 1> tx;
-        smooth::network::PacketReceiveBuffer<StreamingStringPacket, 50> rx;
-        smooth::network::SSLSocket<StreamingStringPacket> s;
+        smooth::network::PacketSendBuffer<HTTPPacket, 1> tx;
+        smooth::network::PacketReceiveBuffer<HTTPPacket, 2> rx;
+        smooth::network::SSLSocket<HTTPPacket> s;
         bool done = false;
 };

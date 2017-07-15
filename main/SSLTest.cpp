@@ -19,12 +19,12 @@ SSLTest::SSLTest()
     s.start(ip);
 }
 
-void SSLTest::message(const DataAvailable<StreamingStringPacket>& msg)
+void SSLTest::message(const DataAvailable<HTTPPacket>& msg)
 {
-    StreamingStringPacket data;
+    HTTPPacket data;
     if (msg.get(data))
     {
-        ESP_LOGV( "SSP", "%s", data.to_string().c_str());
+        ESP_LOGV( "SSLTest", "%s", data.to_string().c_str());
     }
 }
 
@@ -38,7 +38,7 @@ void SSLTest::message(const ConnectionStatus& msg)
     if (!done && msg.is_connected())
     {
         done = true;
-        StreamingStringPacket sp("GET / HTTP/1.1\r\n\r\n");
+        HTTPPacket sp("GET / HTTP/1.1\r\n\r\n");
         tx.put(sp);
     }
 }
