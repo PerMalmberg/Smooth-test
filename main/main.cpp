@@ -81,9 +81,9 @@ class TestPacket
 
 class BlinkReceive
         : public smooth::Task,
-          public smooth::ipc::IEventListener<network::DataAvailable<TestPacket>>,
-          public smooth::ipc::IEventListener<network::TransmitBufferEmpty>,
-          public smooth::ipc::IEventListener<network::ConnectionStatus>
+          public smooth::ipc::IEventListener<network::DataAvailableEvent<TestPacket>>,
+          public smooth::ipc::IEventListener<network::TransmitBufferEmptyEvent>,
+          public smooth::ipc::IEventListener<network::ConnectionStatusEvent>
 {
     public:
         explicit BlinkReceive() :
@@ -103,7 +103,7 @@ class BlinkReceive
             s.start(ip);
         }
 
-        void message(const DataAvailable<TestPacket>& msg) override
+        void message(const DataAvailableEvent<TestPacket>& msg) override
         {
             TestPacket data;
             if (msg.get(data))
@@ -134,7 +134,7 @@ class BlinkReceive
             }
         }
 
-        void message(const TransmitBufferEmpty& msg) override
+        void message(const TransmitBufferEmptyEvent& msg) override
         {
             if (stress)
             {
@@ -142,7 +142,7 @@ class BlinkReceive
             }
         }
 
-        void message(const ConnectionStatus& msg) override
+        void message(const ConnectionStatusEvent& msg) override
         {
             if (!msg.is_connected())
             {
@@ -151,9 +151,9 @@ class BlinkReceive
         }
 
     private:
-        TaskEventQueue<TransmitBufferEmpty> txEmpty;
-        TaskEventQueue<DataAvailable<TestPacket>> data_available;
-        TaskEventQueue<ConnectionStatus> connection_status;
+        TaskEventQueue<TransmitBufferEmptyEvent> txEmpty;
+        TaskEventQueue<DataAvailableEvent<TestPacket>> data_available;
+        TaskEventQueue<ConnectionStatusEvent> connection_status;
         smooth::network::PacketSendBuffer<TestPacket, 1> tx;
         smooth::network::PacketReceiveBuffer<TestPacket, 5> rx;
         smooth::network::Socket<TestPacket> s;

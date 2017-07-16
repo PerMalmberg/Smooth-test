@@ -32,6 +32,7 @@ set( COMPONENTS
         log
         tcpip_adapter
         lwip
+        openssl
         )
 
 set( COMPONENT_INCLUDE_DIRS "" )

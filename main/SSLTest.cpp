@@ -19,7 +19,7 @@ SSLTest::SSLTest()
     s.start(ip);
 }
 
-void SSLTest::message(const DataAvailable<HTTPPacket>& msg)
+void SSLTest::message(const DataAvailableEvent<HTTPPacket>& msg)
 {
     HTTPPacket data;
     if (msg.get(data))
@@ -28,12 +28,12 @@ void SSLTest::message(const DataAvailable<HTTPPacket>& msg)
     }
 }
 
-void SSLTest::message(const TransmitBufferEmpty& msg)
+void SSLTest::message(const TransmitBufferEmptyEvent& msg)
 {
     ESP_LOGV("SSP", "Packet sent");
 }
 
-void SSLTest::message(const ConnectionStatus& msg)
+void SSLTest::message(const ConnectionStatusEvent& msg)
 {
     if (!done && msg.is_connected())
     {
