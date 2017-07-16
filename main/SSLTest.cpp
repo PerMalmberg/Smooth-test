@@ -24,7 +24,7 @@ void SSLTest::message(const DataAvailable<HTTPPacket>& msg)
     HTTPPacket data;
     if (msg.get(data))
     {
-        ESP_LOGV( "SSLTest", "%s", data.to_string().c_str());
+        ESP_LOGV("SSLTest", "%s", data.to_string().c_str());
     }
 }
 
@@ -38,7 +38,9 @@ void SSLTest::message(const ConnectionStatus& msg)
     if (!done && msg.is_connected())
     {
         done = true;
-        HTTPPacket sp("GET / HTTP/1.1\r\n\r\n");
+        HTTPPacket sp("GET / HTTP/1.1\r\n"
+                              "Connection: close"
+                              "\r\n\r\n");
         tx.put(sp);
     }
 }
