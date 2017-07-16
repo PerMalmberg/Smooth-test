@@ -9,6 +9,7 @@
 #include <esp_system.h>
 #include <smooth/network/ISendablePacket.h>
 #include <smooth/network/IReceivablePacket.h>
+#include <smooth/timer/Timer.h>
 #include "SSLTest.h"
 
 #include "wifi-creds.h"
@@ -79,26 +80,34 @@ class TestPacket
         uint8_t buff[5]{};
 };
 
-class BlinkReceive
+class LedControl
         : public smooth::Task,
           public smooth::ipc::IEventListener<network::DataAvailableEvent<TestPacket>>,
           public smooth::ipc::IEventListener<network::TransmitBufferEmptyEvent>,
-          public smooth::ipc::IEventListener<network::ConnectionStatusEvent>
+          public smooth::ipc::IEventListener<network::ConnectionStatusEvent>,
+          public smooth::ipc::IEventListener<timer::TimerExpiredEvent>
 {
     public:
-        explicit BlinkReceive() :
-                Task("BlinkReceive", 14096, 5, milliseconds(10)),
+
+        explicit LedControl() :
+                Task("LedControl", 8192, 5, milliseconds(10)),
                 txEmpty("txEmpty", 1, *this, *this),
                 data_available("data_available", 5, *this, *this),
                 connection_status("connection_status", 3, *this, *this),
+                timer_expired("timer_expired", 10, *this, *this),
                 tx(),
                 rx(),
-                s(tx, rx, txEmpty, data_available, connection_status)
+                s(tx, rx, txEmpty, data_available, connection_status),
+                t("Foo", 1, timer_expired, true, std::chrono::seconds(1))
         {
             gpio_pad_select_gpio(BLINK_GPIO);
             gpio_set_direction(BLINK_GPIO, GPIO_MODE_OUTPUT);
             gpio_set_level(BLINK_GPIO, 0);
+        }
 
+        void init() override
+        {
+            t.start();
             auto ip = std::make_shared<IPv4>("192.168.10.44", 5566);
             s.start(ip);
         }
@@ -150,16 +159,22 @@ class BlinkReceive
             }
         }
 
+        void message(const timer::TimerExpiredEvent& msg) override
+        {
+            tx.put(TestPacket());
+        }
+
     private:
         TaskEventQueue<TransmitBufferEmptyEvent> txEmpty;
         TaskEventQueue<DataAvailableEvent<TestPacket>> data_available;
         TaskEventQueue<ConnectionStatusEvent> connection_status;
+        TaskEventQueue<timer::TimerExpiredEvent> timer_expired;
         smooth::network::PacketSendBuffer<TestPacket, 1> tx;
         smooth::network::PacketReceiveBuffer<TestPacket, 5> rx;
         smooth::network::Socket<TestPacket> s;
+        timer::Timer t;
         bool stress = false;
 };
-
 
 
 extern "C" void app_main()
@@ -172,13 +187,12 @@ extern "C" void app_main()
     Wifi wifi;
     wifi.connect_to_ap("HAP-ESP32", WIFI_SSID, WIFI_PASSWORD, true);
 
-    BlinkReceive r;
-    r.start();
+    LedControl led;
+    led.start();
+
 
     SSLTest ssl_test;
     ssl_test.start();
-
-    SocketDispatcher::instance();
 
     ESP_LOGV("Main", "Free heap: %u", esp_get_free_heap_size());
 
