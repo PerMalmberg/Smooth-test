@@ -15,21 +15,25 @@
 #include <smooth/network/IPv4.h>
 #include <smooth/Task.h>
 #include "HTTPPacket.h"
+#include <smooth/timer/Timer.h>
 
 class SSLTest
         : public smooth::Task,
           public smooth::ipc::IEventListener<smooth::network::DataAvailableEvent<HTTPPacket>>,
           public smooth::ipc::IEventListener<smooth::network::TransmitBufferEmptyEvent>,
-          public smooth::ipc::IEventListener<smooth::network::ConnectionStatusEvent>
+          public smooth::ipc::IEventListener<smooth::network::ConnectionStatusEvent>,
+          public smooth::ipc::IEventListener<smooth::timer::TimerExpiredEvent>
 {
     public:
         SSLTest();
 
         void message(const smooth::network::DataAvailableEvent<HTTPPacket>& msg) override;
-
         void message(const smooth::network::TransmitBufferEmptyEvent& msg) override;
-
         void message(const smooth::network::ConnectionStatusEvent& msg) override;
+        void message(const smooth::timer::TimerExpiredEvent& msg) override;
+
+    protected:
+        void init() override;
 
     private:
         smooth::ipc::TaskEventQueue<smooth::network::TransmitBufferEmptyEvent> txEmpty;
@@ -38,5 +42,6 @@ class SSLTest
         smooth::network::PacketSendBuffer<HTTPPacket, 1> tx;
         smooth::network::PacketReceiveBuffer<HTTPPacket, 2> rx;
         smooth::network::SSLSocket<HTTPPacket> s;
-        bool done = false;
+        smooth::ipc::TaskEventQueue<smooth::timer::TimerExpiredEvent> timer_expired;
+        smooth::timer::Timer timer;
 };

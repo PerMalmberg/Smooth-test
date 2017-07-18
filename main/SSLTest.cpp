@@ -3,20 +3,21 @@
 //
 
 #include "SSLTest.h"
+#include <driver/gpio.h>
 
 using namespace smooth::network;
 
 SSLTest::SSLTest()
-        : Task("SSLTest", 4096, 5, std::chrono::milliseconds(10)),
+        : Task("SSLTest", 8192, 5, std::chrono::milliseconds(10)),
           txEmpty("txEmpty", 1, *this, *this),
           data_available("data_available", 20, *this, *this),
           connection_status("connection_status", 3, *this, *this),
           tx(),
           rx(),
-          s(tx, rx, txEmpty, data_available, connection_status)
+          s(tx, rx, txEmpty, data_available, connection_status),
+          timer_expired("timer_expired", 2, *this, *this),
+          timer("Timer", 0, timer_expired, false, std::chrono::seconds(5))
 {
-    auto ip = std::make_shared<smooth::network::IPv4>("172.217.18.142", 443);
-    s.start(ip);
 }
 
 void SSLTest::message(const DataAvailableEvent<HTTPPacket>& msg)
@@ -35,12 +36,34 @@ void SSLTest::message(const TransmitBufferEmptyEvent& msg)
 
 void SSLTest::message(const ConnectionStatusEvent& msg)
 {
-    if (!done && msg.is_connected())
+    if ( msg.is_connected())
     {
-        done = true;
         HTTPPacket sp("GET / HTTP/1.1\r\n"
                               "Connection: close"
                               "\r\n\r\n");
         tx.put(sp);
     }
+    else
+    {
+        timer.reset();
+    }
+
+    gpio_set_level(GPIO_NUM_25, msg.is_connected());
+}
+
+void SSLTest::message(const smooth::timer::TimerExpiredEvent& msg)
+{
+    ESP_LOGV("SSLTest", "TimerExpiredEvent");
+    if( !s.is_active() )
+    {
+        auto ip = std::make_shared<smooth::network::IPv4>("172.217.18.142", 443);
+        s.start(ip);
+    }
+}
+
+void SSLTest::init()
+{
+    gpio_pad_select_gpio(GPIO_NUM_25);
+    gpio_set_direction(GPIO_NUM_25, GPIO_MODE_OUTPUT);
+    timer.start();
 }

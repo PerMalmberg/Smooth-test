@@ -14,8 +14,6 @@
 
 #include "wifi-creds.h"
 
-const gpio_num_t BLINK_GPIO = GPIO_NUM_5;
-
 using namespace smooth;
 using namespace smooth::ipc;
 using namespace smooth::network;
@@ -98,16 +96,23 @@ class LedControl
                 tx(),
                 rx(),
                 s(tx, rx, txEmpty, data_available, connection_status),
-                t("Foo", 1, timer_expired, true, std::chrono::seconds(1))
+                network_timer("Foo", 1, timer_expired, true, std::chrono::seconds(2)),
+                steady_blink("stead_blink", 2, timer_expired, true, std::chrono::milliseconds(500))
         {
-            gpio_pad_select_gpio(BLINK_GPIO);
-            gpio_set_direction(BLINK_GPIO, GPIO_MODE_OUTPUT);
-            gpio_set_level(BLINK_GPIO, 0);
         }
 
         void init() override
         {
-            t.start();
+            gpio_pad_select_gpio(GPIO_NUM_5);
+            gpio_set_direction(GPIO_NUM_5, GPIO_MODE_OUTPUT);
+            gpio_set_level(GPIO_NUM_5, 0);
+
+            gpio_pad_select_gpio(GPIO_NUM_26);
+            gpio_set_direction(GPIO_NUM_26, GPIO_MODE_OUTPUT);
+            gpio_set_level(GPIO_NUM_26, 0);
+
+            network_timer.start();
+            steady_blink.start();
             auto ip = std::make_shared<IPv4>("192.168.10.44", 5566);
             s.start(ip);
         }
@@ -125,11 +130,11 @@ class LedControl
 
                 if (data.get_data()[0] == '1')
                 {
-                    gpio_set_level(BLINK_GPIO, 1);
+                    gpio_set_level(GPIO_NUM_5, 1);
                 }
                 else if (data.get_data()[0] == '0')
                 {
-                    gpio_set_level(BLINK_GPIO, 0);
+                    gpio_set_level(GPIO_NUM_5, 0);
                 }
                 else if (data.get_data()[0] == 'x')
                 {
@@ -153,15 +158,27 @@ class LedControl
 
         void message(const ConnectionStatusEvent& msg) override
         {
-            if (!msg.is_connected())
-            {
-                s.restart();
-            }
+            ESP_LOGV("Conn", "%s", msg.is_connected() ? "Connected" : "Not connected");
         }
 
         void message(const timer::TimerExpiredEvent& msg) override
         {
-            tx.put(TestPacket());
+            if (msg.get_timer() == &network_timer)
+            {
+                if (s.is_active())
+                {
+                    tx.put(TestPacket());
+                }
+                else
+                {
+                    s.restart();
+                }
+            }
+            else if (msg.get_timer() == &steady_blink)
+            {
+                led_on = !led_on;
+                gpio_set_level(GPIO_NUM_26, led_on ? 1 : 0);
+            }
         }
 
     private:
@@ -172,24 +189,30 @@ class LedControl
         smooth::network::PacketSendBuffer<TestPacket, 1> tx;
         smooth::network::PacketReceiveBuffer<TestPacket, 5> rx;
         smooth::network::Socket<TestPacket> s;
-        timer::Timer t;
+        timer::Timer network_timer;
+        timer::Timer steady_blink;
         bool stress = false;
+        bool led_on = false;
 };
 
 
 extern "C" void app_main()
 {
+    // Start socket dispatcher first of all so that it is
+    // ready to receive network status events.
+    SocketDispatcher::instance();
 
     Application app("Main app", 4096, 6);
-    app.set_system_log_level(ESP_LOG_ERROR);
+    //app.set_system_log_level(ESP_LOG_ERROR);
     app.start();
 
     Wifi wifi;
     wifi.connect_to_ap("HAP-ESP32", WIFI_SSID, WIFI_PASSWORD, true);
 
+    vTaskDelay(pdMS_TO_TICKS(5000));
+
     LedControl led;
     led.start();
-
 
     SSLTest ssl_test;
     ssl_test.start();
