@@ -53,7 +53,6 @@ void SSLTest::message(const ConnectionStatusEvent& msg)
 
 void SSLTest::message(const smooth::timer::TimerExpiredEvent& msg)
 {
-    ESP_LOGV("SSLTest", "TimerExpiredEvent");
     if( !s.is_active() )
     {
         auto ip = std::make_shared<smooth::network::IPv4>("172.217.18.142", 443);
