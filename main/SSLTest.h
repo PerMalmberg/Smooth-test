@@ -5,43 +5,43 @@
 #pragma once
 
 #include <chrono>
-#include <smooth/ipc/IEventListener.h>
-#include <smooth/ipc/TaskEventQueue.h>
-#include <smooth/network/DataAvailableEvent.h>
-#include <smooth/network/TransmitBufferEmptyEvent.h>
-#include <smooth/network/ConnectionStatusEvent.h>
-#include <smooth/network/PacketSendBuffer.h>
-#include <smooth/network/SSLSocket.h>
-#include <smooth/network/IPv4.h>
-#include <smooth/Task.h>
+#include <smooth/core/ipc/IEventListener.h>
+#include <smooth/core/ipc/TaskEventQueue.h>
+#include <smooth/core/network/DataAvailableEvent.h>
+#include <smooth/core/network/TransmitBufferEmptyEvent.h>
+#include <smooth/core/network/ConnectionStatusEvent.h>
+#include <smooth/core/network/PacketSendBuffer.h>
+#include <smooth/core/network/SSLSocket.h>
+#include <smooth/core/network/IPv4.h>
+#include <smooth/core/Task.h>
 #include "HTTPPacket.h"
-#include <smooth/timer/Timer.h>
+#include <smooth/core/timer/Timer.h>
 
 class SSLTest
-        : public smooth::Task,
-          public smooth::ipc::IEventListener<smooth::network::DataAvailableEvent<HTTPPacket>>,
-          public smooth::ipc::IEventListener<smooth::network::TransmitBufferEmptyEvent>,
-          public smooth::ipc::IEventListener<smooth::network::ConnectionStatusEvent>,
-          public smooth::ipc::IEventListener<smooth::timer::TimerExpiredEvent>
+        : public smooth::core::Task,
+          public smooth::core::ipc::IEventListener<smooth::core::network::DataAvailableEvent<HTTPPacket>>,
+          public smooth::core::ipc::IEventListener<smooth::core::network::TransmitBufferEmptyEvent>,
+          public smooth::core::ipc::IEventListener<smooth::core::network::ConnectionStatusEvent>,
+          public smooth::core::ipc::IEventListener<smooth::core::timer::TimerExpiredEvent>
 {
     public:
         SSLTest();
 
-        void message(const smooth::network::DataAvailableEvent<HTTPPacket>& msg) override;
-        void message(const smooth::network::TransmitBufferEmptyEvent& msg) override;
-        void message(const smooth::network::ConnectionStatusEvent& msg) override;
-        void message(const smooth::timer::TimerExpiredEvent& msg) override;
+        void message(const smooth::core::network::DataAvailableEvent<HTTPPacket>& msg) override;
+        void message(const smooth::core::network::TransmitBufferEmptyEvent& msg) override;
+        void message(const smooth::core::network::ConnectionStatusEvent& msg) override;
+        void message(const smooth::core::timer::TimerExpiredEvent& msg) override;
 
     protected:
         void init() override;
 
     private:
-        smooth::ipc::TaskEventQueue<smooth::network::TransmitBufferEmptyEvent> txEmpty;
-        smooth::ipc::TaskEventQueue<smooth::network::DataAvailableEvent<HTTPPacket>> data_available;
-        smooth::ipc::TaskEventQueue<smooth::network::ConnectionStatusEvent> connection_status;
-        smooth::network::PacketSendBuffer<HTTPPacket, 1> tx;
-        smooth::network::PacketReceiveBuffer<HTTPPacket, 2> rx;
-        smooth::network::SSLSocket<HTTPPacket> s;
-        smooth::ipc::TaskEventQueue<smooth::timer::TimerExpiredEvent> timer_expired;
-        smooth::timer::Timer timer;
+        smooth::core::ipc::TaskEventQueue<smooth::core::network::TransmitBufferEmptyEvent> txEmpty;
+        smooth::core::ipc::TaskEventQueue<smooth::core::network::DataAvailableEvent<HTTPPacket>> data_available;
+        smooth::core::ipc::TaskEventQueue<smooth::core::network::ConnectionStatusEvent> connection_status;
+        smooth::core::network::PacketSendBuffer<HTTPPacket, 1> tx;
+        smooth::core::network::PacketReceiveBuffer<HTTPPacket, 2> rx;
+        smooth::core::network::SSLSocket<HTTPPacket> s;
+        smooth::core::ipc::TaskEventQueue<smooth::core::timer::TimerExpiredEvent> timer_expired;
+        smooth::core::timer::Timer timer;
 };

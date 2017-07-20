@@ -6,22 +6,22 @@
 
 #include <driver/gpio.h>
 #include <esp_system.h>
-#include <smooth/Task.h>
-#include <smooth/network/IPv4.h>
-#include <smooth/network/Socket.h>
-#include <smooth/Application.h>
-#include <smooth/ipc/Publisher.h>
-#include <smooth/ipc/IEventListener.h>
-#include <smooth/network/TransmitBufferEmptyEvent.h>
-#include <smooth/network/ConnectionStatusEvent.h>
-#include <smooth/network/DataAvailableEvent.h>
-#include <smooth/network/ISendablePacket.h>
-#include <smooth/network/IReceivablePacket.h>
-#include <smooth/timer/Timer.h>
-#include <smooth/timer/TimerExpiredEvent.h>
+#include <smooth/core/Task.h>
+#include <smooth/core/network/IPv4.h>
+#include <smooth/core/network/Socket.h>
+#include <smooth/core/Application.h>
+#include <smooth/core/ipc/Publisher.h>
+#include <smooth/core/ipc/IEventListener.h>
+#include <smooth/core/network/TransmitBufferEmptyEvent.h>
+#include <smooth/core/network/ConnectionStatusEvent.h>
+#include <smooth/core/network/DataAvailableEvent.h>
+#include <smooth/core/network/ISendablePacket.h>
+#include <smooth/core/network/IReceivablePacket.h>
+#include <smooth/core/timer/Timer.h>
+#include <smooth/core/timer/TimerExpiredEvent.h>
 
 class TestPacket
-        : public smooth::network::ISendablePacket, public smooth::network::IReceivablePacket
+        : public smooth::core::network::ISendablePacket, public smooth::core::network::IReceivablePacket
 {
     public:
         TestPacket()
@@ -80,11 +80,11 @@ class TestPacket
 };
 
 class LedControl
-        : public smooth::Task,
-          public smooth::ipc::IEventListener<smooth::network::DataAvailableEvent<TestPacket>>,
-          public smooth::ipc::IEventListener<smooth::network::TransmitBufferEmptyEvent>,
-          public smooth::ipc::IEventListener<smooth::network::ConnectionStatusEvent>,
-          public smooth::ipc::IEventListener<smooth::timer::TimerExpiredEvent>
+        : public smooth::core::Task,
+          public smooth::core::ipc::IEventListener<smooth::core::network::DataAvailableEvent<TestPacket>>,
+          public smooth::core::ipc::IEventListener<smooth::core::network::TransmitBufferEmptyEvent>,
+          public smooth::core::ipc::IEventListener<smooth::core::network::ConnectionStatusEvent>,
+          public smooth::core::ipc::IEventListener<smooth::core::timer::TimerExpiredEvent>
 {
     public:
 
@@ -93,25 +93,25 @@ class LedControl
 
         void init() override;
 
-        void message(const smooth::network::DataAvailableEvent<TestPacket>& msg) override;
+        void message(const smooth::core::network::DataAvailableEvent<TestPacket>& msg) override;
 
-        void message(const smooth::network::TransmitBufferEmptyEvent& msg) override;
+        void message(const smooth::core::network::TransmitBufferEmptyEvent& msg) override;
 
-        void message(const smooth::network::ConnectionStatusEvent& msg) override;
+        void message(const smooth::core::network::ConnectionStatusEvent& msg) override;
 
-        void message(const smooth::timer::TimerExpiredEvent& msg) override;
+        void message(const smooth::core::timer::TimerExpiredEvent& msg) override;
 
 
     private:
-        smooth::ipc::TaskEventQueue<smooth::network::TransmitBufferEmptyEvent> txEmpty;
-        smooth::ipc::TaskEventQueue<smooth::network::DataAvailableEvent<TestPacket>> data_available;
-        smooth::ipc::TaskEventQueue<smooth::network::ConnectionStatusEvent> connection_status;
-        smooth::ipc::TaskEventQueue<smooth::timer::TimerExpiredEvent> timer_expired;
-        smooth::network::PacketSendBuffer<TestPacket, 1> tx;
-        smooth::network::PacketReceiveBuffer<TestPacket, 5> rx;
-        smooth::network::Socket<TestPacket> s;
-        smooth::timer::Timer network_timer;
-        smooth::timer::Timer steady_blink;
+        smooth::core::ipc::TaskEventQueue<smooth::core::network::TransmitBufferEmptyEvent> txEmpty;
+        smooth::core::ipc::TaskEventQueue<smooth::core::network::DataAvailableEvent<TestPacket>> data_available;
+        smooth::core::ipc::TaskEventQueue<smooth::core::network::ConnectionStatusEvent> connection_status;
+        smooth::core::ipc::TaskEventQueue<smooth::core::timer::TimerExpiredEvent> timer_expired;
+        smooth::core::network::PacketSendBuffer<TestPacket, 1> tx;
+        smooth::core::network::PacketReceiveBuffer<TestPacket, 5> rx;
+        smooth::core::network::Socket<TestPacket> s;
+        smooth::core::timer::Timer network_timer;
+        smooth::core::timer::Timer steady_blink;
         bool stress = false;
         bool led_on = false;
 };

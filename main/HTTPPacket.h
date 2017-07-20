@@ -7,11 +7,11 @@
 #include <string>
 #include <map>
 #include <algorithm>
-#include <smooth/network/ISendablePacket.h>
-#include <smooth/network/IReceivablePacket.h>
+#include <smooth/core/network/ISendablePacket.h>
+#include <smooth/core/network/IReceivablePacket.h>
 
 class HTTPPacket
-        : public smooth::network::ISendablePacket, public smooth::network::IReceivablePacket
+        : public smooth::core::network::ISendablePacket, public smooth::core::network::IReceivablePacket
 {
     public:
         HTTPPacket() = default;

@@ -5,9 +5,9 @@
 #include "LedControl.h"
 
 using namespace std::chrono;
-using namespace smooth::network;
-using namespace smooth::ipc;
-using namespace smooth;
+using namespace smooth::core::network;
+using namespace smooth::core::ipc;
+using namespace smooth::core;
 
 LedControl::LedControl() : Task("LedControl", 8192, 5, milliseconds(10)),
                            txEmpty("txEmpty", 1, *this, *this),
@@ -35,7 +35,7 @@ void LedControl::init()
 
     network_timer.start();
     steady_blink.start();
-    auto ip = std::make_shared<smooth::network::IPv4>("192.168.10.44", 5566);
+    auto ip = std::make_shared<smooth::core::network::IPv4>("192.168.10.44", 5566);
     s.start(ip);
 }
 

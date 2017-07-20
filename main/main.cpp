@@ -1,25 +1,24 @@
 #include <driver/gpio.h>
-#include <smooth/network/Wifi.h>
-#include <smooth/Task.h>
-#include <smooth/network/IPv4.h>
-#include <smooth/network/IPv6.h>
-#include <smooth/network/Socket.h>
-#include <smooth/Application.h>
-#include <smooth/ipc/Publisher.h>
+#include <smooth/core/network/Wifi.h>
+#include <smooth/core/Task.h>
+#include <smooth/core/network/IPv4.h>
+#include <smooth/core/network/IPv6.h>
+#include <smooth/core/network/Socket.h>
+#include <smooth/core/Application.h>
+#include <smooth/core/ipc/Publisher.h>
 #include <esp_system.h>
-#include <smooth/network/ISendablePacket.h>
-#include <smooth/network/IReceivablePacket.h>
-#include <smooth/timer/Timer.h>
-#include <esp_event.h>
+#include <smooth/core/network/ISendablePacket.h>
+#include <smooth/core/network/IReceivablePacket.h>
+#include <smooth/core/timer/Timer.h>
 
 #include "SSLTest.h"
 #include "LedControl.h"
 
 #include "wifi-creds.h"
 
-using namespace smooth;
-using namespace smooth::ipc;
-using namespace smooth::network;
+using namespace smooth::core;
+using namespace smooth::core::ipc;
+using namespace smooth::core::network;
 using namespace std::chrono;
 
 class MyApp

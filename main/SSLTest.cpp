@@ -5,7 +5,7 @@
 #include "SSLTest.h"
 #include <driver/gpio.h>
 
-using namespace smooth::network;
+using namespace smooth::core::network;
 
 SSLTest::SSLTest()
         : Task("SSLTest", 8192, 5, std::chrono::milliseconds(10)),
@@ -51,11 +51,11 @@ void SSLTest::message(const ConnectionStatusEvent& msg)
     gpio_set_level(GPIO_NUM_25, msg.is_connected());
 }
 
-void SSLTest::message(const smooth::timer::TimerExpiredEvent& msg)
+void SSLTest::message(const smooth::core::timer::TimerExpiredEvent& msg)
 {
     if( !s.is_active() )
     {
-        auto ip = std::make_shared<smooth::network::IPv4>("172.217.18.142", 443);
+        auto ip = std::make_shared<smooth::core::network::IPv4>("172.217.18.142", 443);
         s.start(ip);
     }
 }
