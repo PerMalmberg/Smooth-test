@@ -26,9 +26,9 @@ class TestPacket
     public:
         TestPacket()
         {
-            memset(buff, '.', sizeof(buff));
-            buff[0] = '<';
-            buff[sizeof(buff) - 1] = '>';
+            std::fill(std::begin(buff), std::end(buff), '.');
+            *std::begin(buff) = '<';
+            *(std::end(buff)-1) = '>';
         }
 
         int get_wanted_amount() override
