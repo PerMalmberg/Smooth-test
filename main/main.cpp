@@ -1,18 +1,10 @@
 #include <driver/gpio.h>
 #include <smooth/core/network/Wifi.h>
-#include <smooth/core/Task.h>
-#include <smooth/core/network/IPv4.h>
-#include <smooth/core/network/IPv6.h>
-#include <smooth/core/network/Socket.h>
-#include <smooth/core/Application.h>
-#include <smooth/core/ipc/Publisher.h>
-#include <esp_system.h>
-#include <smooth/core/network/ISendablePacket.h>
-#include <smooth/core/network/IReceivablePacket.h>
-#include <smooth/core/timer/Timer.h>
+
 
 #include "SSLTest.h"
 #include "LedControl.h"
+#include "MQTTTest.h"
 
 #include "wifi-creds.h"
 
@@ -59,12 +51,19 @@ extern "C" void app_main()
     wifi.set_host_name("HAP-ESP32");
     wifi.set_ap_credentials(WIFI_SSID, WIFI_PASSWORD);
     wifi.set_auto_connect(true);
+    app.set_system_log_level(ESP_LOG_ERROR);
 
-    LedControl led;
+    /*LedControl led;
     led.start();
 
     SSLTest ssl_test;
     ssl_test.start();
+*/
+
+    MQTTTest mqtt;
+    auto address = std::make_shared<smooth::core::network::IPv4>("192.168.10.247", 1883);
+    mqtt.start( address, false );
+
 
     //app.set_system_log_level(ESP_LOG_ERROR);
 
