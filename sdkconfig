@@ -95,6 +95,7 @@ CONFIG_OPTIMIZATION_ASSERTIONS_ENABLED=y
 #
 # Component config
 #
+CONFIG_SMOOTH_MAX_MQTT_MESSAGE_SIZE=512
 
 #
 # Application Level Tracing
