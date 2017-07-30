@@ -52,8 +52,8 @@ extern "C" void app_main()
     wifi.set_ap_credentials(WIFI_SSID, WIFI_PASSWORD);
     wifi.set_auto_connect(true);
     app.set_system_log_level(ESP_LOG_ERROR);
-
-    /*LedControl led;
+/*
+    LedControl led;
     led.start();
 
     SSLTest ssl_test;

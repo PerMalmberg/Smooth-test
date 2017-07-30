@@ -15,6 +15,6 @@ MQTTTest::MQTTTest()
 void MQTTTest::start(std::shared_ptr<smooth::core::network::InetAddress> address, bool use_ssl)
 {
     mqtt.start();
-    mqtt.connect_to(address, use_ssl);
+    mqtt.connect_to(address, true, use_ssl);
 }
 
