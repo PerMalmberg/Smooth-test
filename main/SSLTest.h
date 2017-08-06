@@ -41,7 +41,7 @@ class SSLTest
         smooth::core::ipc::TaskEventQueue<smooth::core::network::ConnectionStatusEvent> connection_status;
         smooth::core::network::PacketSendBuffer<HTTPPacket, 1> tx;
         smooth::core::network::PacketReceiveBuffer<HTTPPacket, 2> rx;
-        smooth::core::network::SSLSocket<HTTPPacket> s;
+        std::shared_ptr<smooth::core::network::ISocket> s;
         smooth::core::ipc::TaskEventQueue<smooth::core::timer::TimerExpiredEvent> timer_expired;
         smooth::core::timer::Timer timer;
 };

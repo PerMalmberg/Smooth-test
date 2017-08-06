@@ -14,7 +14,7 @@ SSLTest::SSLTest()
           connection_status("connection_status", 3, *this, *this),
           tx(),
           rx(),
-          s(tx, rx, txEmpty, data_available, connection_status),
+          s(SSLSocket<HTTPPacket>::create(tx, rx, txEmpty, data_available, connection_status)),
           timer_expired("timer_expired", 2, *this, *this),
           timer("Timer", 0, timer_expired, false, std::chrono::seconds(5))
 {
@@ -36,7 +36,7 @@ void SSLTest::message(const TransmitBufferEmptyEvent& msg)
 
 void SSLTest::message(const ConnectionStatusEvent& msg)
 {
-    if ( msg.is_connected())
+    if (msg.is_connected())
     {
         HTTPPacket sp("GET / HTTP/1.1\r\n"
                               "Connection: close"
@@ -53,10 +53,10 @@ void SSLTest::message(const ConnectionStatusEvent& msg)
 
 void SSLTest::message(const smooth::core::timer::TimerExpiredEvent& msg)
 {
-    if( !s.is_active() )
+    if (!s->is_active())
     {
         auto ip = std::make_shared<smooth::core::network::IPv4>("172.217.18.142", 443);
-        s.start(ip);
+        s->start(ip);
     }
 }
 
