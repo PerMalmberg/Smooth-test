@@ -109,7 +109,7 @@ class LedControl
         smooth::core::ipc::TaskEventQueue<smooth::core::timer::TimerExpiredEvent> timer_expired;
         smooth::core::network::PacketSendBuffer<TestPacket, 1> tx;
         smooth::core::network::PacketReceiveBuffer<TestPacket, 5> rx;
-        smooth::core::network::Socket<TestPacket> s;
+        std::shared_ptr<smooth::core::network::ISocket> s;
         smooth::core::timer::Timer network_timer;
         smooth::core::timer::Timer steady_blink;
         bool stress = false;

@@ -16,9 +16,9 @@ LedControl::LedControl() : Task("LedControl", 8192, 5, milliseconds(10)),
                            timer_expired("timer_expired", 10, *this, *this),
                            tx(),
                            rx(),
-                           s(tx, rx, txEmpty, data_available, connection_status),
-                           network_timer("Foo", 1, timer_expired, true, std::chrono::seconds(2)),
-                           steady_blink("stead_blink", 2, timer_expired, true, std::chrono::milliseconds(500))
+                           s(),
+                           network_timer("network_timer", 1, timer_expired, true, std::chrono::seconds(10)),
+                           steady_blink("steady_blink", 2, timer_expired, true, std::chrono::milliseconds(500))
 {
 
 }
@@ -35,8 +35,9 @@ void LedControl::init()
 
     network_timer.start();
     steady_blink.start();
+    s = Socket<TestPacket>::create( tx, rx, txEmpty, data_available, connection_status);
     auto ip = std::make_shared<smooth::core::network::IPv4>("192.168.10.44", 5566);
-    s.start(ip);
+    s->start(ip);
 }
 
 void LedControl::message(const DataAvailableEvent <TestPacket>& msg)
@@ -48,7 +49,6 @@ void LedControl::message(const DataAvailableEvent <TestPacket>& msg)
         {
             ESP_LOGV("D", "%c", data.get_data()[i]);
         }
-
 
         if (data.get_data()[0] == '1')
         {
@@ -87,13 +87,13 @@ void LedControl::message(const timer::TimerExpiredEvent& msg)
 {
     if (msg.get_timer() == &network_timer)
     {
-        if (s.is_active())
+        if (s->is_active())
         {
             tx.put(TestPacket());
         }
         else
         {
-            s.restart();
+            s->restart();
         }
     }
     else if (msg.get_timer() == &steady_blink)
