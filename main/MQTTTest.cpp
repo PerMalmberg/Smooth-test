@@ -8,7 +8,7 @@
 using namespace smooth::application::network::mqtt;
 
 MQTTTest::MQTTTest()
-        : mqtt("TestMQTT", std::chrono::seconds(10), 4096, tskIDLE_PRIORITY + 6)
+        : mqtt("TestMQTT", std::chrono::seconds(5), 4096, tskIDLE_PRIORITY + 6)
 {
 }
 
