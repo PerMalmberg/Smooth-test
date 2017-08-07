@@ -20,7 +20,7 @@ SSLTest::SSLTest()
 {
 }
 
-void SSLTest::message(const DataAvailableEvent<HTTPPacket>& msg)
+void SSLTest::event(const DataAvailableEvent<HTTPPacket>& msg)
 {
     HTTPPacket data;
     if (msg.get(data))
@@ -29,12 +29,12 @@ void SSLTest::message(const DataAvailableEvent<HTTPPacket>& msg)
     }
 }
 
-void SSLTest::message(const TransmitBufferEmptyEvent& msg)
+void SSLTest::event(const TransmitBufferEmptyEvent& msg)
 {
     ESP_LOGV("SSP", "Packet sent");
 }
 
-void SSLTest::message(const ConnectionStatusEvent& msg)
+void SSLTest::event(const ConnectionStatusEvent& msg)
 {
     if (msg.is_connected())
     {
@@ -51,7 +51,7 @@ void SSLTest::message(const ConnectionStatusEvent& msg)
     gpio_set_level(GPIO_NUM_25, msg.is_connected());
 }
 
-void SSLTest::message(const smooth::core::timer::TimerExpiredEvent& msg)
+void SSLTest::event(const smooth::core::timer::TimerExpiredEvent& msg)
 {
     if (!s->is_active())
     {

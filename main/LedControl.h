@@ -93,13 +93,13 @@ class LedControl
 
         void init() override;
 
-        void message(const smooth::core::network::DataAvailableEvent<TestPacket>& msg) override;
+        void event(const smooth::core::network::DataAvailableEvent<TestPacket>& msg) override;
 
-        void message(const smooth::core::network::TransmitBufferEmptyEvent& msg) override;
+        void event(const smooth::core::network::TransmitBufferEmptyEvent& msg) override;
 
-        void message(const smooth::core::network::ConnectionStatusEvent& msg) override;
+        void event(const smooth::core::network::ConnectionStatusEvent& msg) override;
 
-        void message(const smooth::core::timer::TimerExpiredEvent& msg) override;
+        void event(const smooth::core::timer::TimerExpiredEvent& msg) override;
 
 
     private:

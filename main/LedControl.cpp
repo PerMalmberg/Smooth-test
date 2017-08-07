@@ -40,7 +40,7 @@ void LedControl::init()
     s->start(ip);
 }
 
-void LedControl::message(const DataAvailableEvent <TestPacket>& msg)
+void LedControl::event(const DataAvailableEvent <TestPacket>& msg)
 {
     TestPacket data;
     if (msg.get(data))
@@ -70,7 +70,7 @@ void LedControl::message(const DataAvailableEvent <TestPacket>& msg)
     }
 }
 
-void LedControl::message(const TransmitBufferEmptyEvent& msg)
+void LedControl::event(const TransmitBufferEmptyEvent& msg)
 {
     if (stress)
     {
@@ -78,12 +78,12 @@ void LedControl::message(const TransmitBufferEmptyEvent& msg)
     }
 }
 
-void LedControl::message(const ConnectionStatusEvent& msg)
+void LedControl::event(const ConnectionStatusEvent& msg)
 {
 
 }
 
-void LedControl::message(const timer::TimerExpiredEvent& msg)
+void LedControl::event(const timer::TimerExpiredEvent& msg)
 {
     if (msg.get_timer() == &network_timer)
     {

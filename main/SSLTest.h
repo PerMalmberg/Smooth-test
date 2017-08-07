@@ -27,10 +27,10 @@ class SSLTest
     public:
         SSLTest();
 
-        void message(const smooth::core::network::DataAvailableEvent<HTTPPacket>& msg) override;
-        void message(const smooth::core::network::TransmitBufferEmptyEvent& msg) override;
-        void message(const smooth::core::network::ConnectionStatusEvent& msg) override;
-        void message(const smooth::core::timer::TimerExpiredEvent& msg) override;
+        void event(const smooth::core::network::DataAvailableEvent<HTTPPacket>& msg) override;
+        void event(const smooth::core::network::TransmitBufferEmptyEvent& msg) override;
+        void event(const smooth::core::network::ConnectionStatusEvent& msg) override;
+        void event(const smooth::core::timer::TimerExpiredEvent& msg) override;
 
     protected:
         void init() override;
