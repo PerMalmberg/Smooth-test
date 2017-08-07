@@ -15,13 +15,13 @@
 #include <smooth/core/network/TransmitBufferEmptyEvent.h>
 #include <smooth/core/network/ConnectionStatusEvent.h>
 #include <smooth/core/network/DataAvailableEvent.h>
-#include <smooth/core/network/ISendablePacket.h>
-#include <smooth/core/network/IReceivablePacket.h>
+#include <smooth/core/network/IPacketDisassembly.h>
+#include <smooth/core/network/IPacketAssembly.h>
 #include <smooth/core/timer/Timer.h>
 #include <smooth/core/timer/TimerExpiredEvent.h>
 
 class TestPacket
-        : public smooth::core::network::ISendablePacket, public smooth::core::network::IReceivablePacket
+        : public smooth::core::network::IPacketDisassembly, public smooth::core::network::IPacketAssembly
 {
     public:
         TestPacket()
