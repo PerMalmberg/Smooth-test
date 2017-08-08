@@ -12,7 +12,7 @@ class MQTTTest
     public:
         MQTTTest();
 
-        void start(std::shared_ptr<smooth::core::network::InetAddress> address, bool use_ssl);
+        void start(std::shared_ptr<smooth::core::network::InetAddress> address);
         void disconnect();
 
     private:

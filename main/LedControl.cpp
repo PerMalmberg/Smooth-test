@@ -80,7 +80,10 @@ void LedControl::event(const TransmitBufferEmptyEvent& msg)
 
 void LedControl::event(const ConnectionStatusEvent& msg)
 {
-
+    if( !msg.is_connected())
+    {
+        s->restart();
+    }
 }
 
 void LedControl::event(const timer::TimerExpiredEvent& msg)

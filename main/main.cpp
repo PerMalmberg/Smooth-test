@@ -2,7 +2,6 @@
 #include <smooth/core/network/Wifi.h>
 
 
-#include "SSLTest.h"
 #include "LedControl.h"
 #include "MQTTTest.h"
 #include <smooth/core/timer/PerfCount.h>
@@ -37,20 +36,20 @@ class MyApp
             Application::init();
 
             auto address = std::make_shared<smooth::core::network::IPv4>("192.168.10.247", 1883);
-            mqtt.start(address, false);
+            mqtt.start(address);
             mqtt_cycle.start();
         }
 
         void tick() override
         {
-            if (mqtt_cycle.get_running_time() > std::chrono::seconds(20))
+            if (mqtt_cycle.get_running_time() > std::chrono::seconds(60 * 5))
             {
                 ESP_LOGD("Main", "Forcing MQTT reconnect");
                 mqtt_cycle.reset();
                 mqtt.disconnect();
 
                 auto address = std::make_shared<smooth::core::network::IPv4>("192.168.10.247", 1883);
-                mqtt.start(address, false);
+                mqtt.start(address);
             }
         }
 
@@ -72,13 +71,11 @@ extern "C" void app_main()
     wifi.set_auto_connect(true);
     app.set_system_log_level(ESP_LOG_ERROR);
 
-
+/*
     LedControl led;
     led.start();
-/*
-    SSLTest ssl_test;
-    ssl_test.start();
 */
+
     app.set_system_log_level(ESP_LOG_ERROR);
 
     ESP_LOGV("Main", "Free heap: %u", esp_get_free_heap_size());
