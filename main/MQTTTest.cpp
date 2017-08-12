@@ -16,7 +16,7 @@ void MQTTTest::start(std::shared_ptr<smooth::core::network::InetAddress> address
 {
     mqtt.start();
     mqtt.connect_to(address, true);
-    mqtt.publish("TestTopic", "TestMessage", AT_MOST_ONCE, false);
+    mqtt.publish("TestTopic", "TestMessage", AT_LEAST_ONCE, false);
 }
 
 void MQTTTest::disconnect()
