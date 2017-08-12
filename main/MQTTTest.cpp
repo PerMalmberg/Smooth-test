@@ -3,12 +3,12 @@
 //
 
 #include "MQTTTest.h"
-#include <driver/gpio.h>
+#include <smooth/application/network/mqtt/MQTTProtocolDefinitions.h>
 
 using namespace smooth::application::network::mqtt;
 
 MQTTTest::MQTTTest()
-        : mqtt("TestMQTT", std::chrono::seconds(5), 4096, tskIDLE_PRIORITY + 6)
+        : mqtt("TestMQTT", std::chrono::seconds(5), 4096, tskIDLE_PRIORITY + 1)
 {
 }
 
@@ -16,6 +16,7 @@ void MQTTTest::start(std::shared_ptr<smooth::core::network::InetAddress> address
 {
     mqtt.start();
     mqtt.connect_to(address, true);
+    mqtt.publish("TestTopic", "TestMessage", AT_MOST_ONCE, false);
 }
 
 void MQTTTest::disconnect()

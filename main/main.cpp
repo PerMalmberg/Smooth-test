@@ -13,49 +13,27 @@ using namespace smooth::core::ipc;
 using namespace smooth::core::network;
 using namespace std::chrono;
 
+static const std::string mqtt_broker = "192.168.10.247";
 
 class MyApp
         : public Application
 {
     public:
-        MyApp() : Application(tskIDLE_PRIORITY + 6, std::chrono::seconds(1)),
-                  mqtt(), mqtt_cycle()
+        MyApp() : Application(tskIDLE_PRIORITY + 1, std::chrono::seconds(1)),
+                  mqtt()
         {
-            gpio_pad_select_gpio(GPIO_NUM_5);
-            gpio_set_direction(GPIO_NUM_5, GPIO_MODE_OUTPUT);
-            gpio_set_level(GPIO_NUM_5, 0);
-
-
-            gpio_pad_select_gpio(GPIO_NUM_26);
-            gpio_set_direction(GPIO_NUM_26, GPIO_MODE_OUTPUT);
-            gpio_set_level(GPIO_NUM_26, 0);
         }
 
         void init() override
         {
             Application::init();
 
-            auto address = std::make_shared<smooth::core::network::IPv4>("192.168.10.247", 1883);
+            auto address = std::make_shared<smooth::core::network::IPv4>(mqtt_broker, 1883);
             mqtt.start(address);
-            mqtt_cycle.start();
-        }
-
-        void tick() override
-        {
-            if (mqtt_cycle.get_running_time() > std::chrono::seconds(60 * 5))
-            {
-                ESP_LOGD("Main", "Forcing MQTT reconnect");
-                mqtt_cycle.reset();
-                mqtt.disconnect();
-
-                auto address = std::make_shared<smooth::core::network::IPv4>("192.168.10.247", 1883);
-                mqtt.start(address);
-            }
         }
 
     private:
         MQTTTest mqtt;
-        timer::PerfCount mqtt_cycle;
 };
 
 extern "C" void app_main()
