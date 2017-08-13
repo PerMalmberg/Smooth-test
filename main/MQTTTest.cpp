@@ -8,7 +8,7 @@
 using namespace smooth::application::network::mqtt;
 
 MQTTTest::MQTTTest()
-        : mqtt("TestMQTT", std::chrono::seconds(5), 4096, tskIDLE_PRIORITY + 1)
+        : mqtt("TestMQTT", std::chrono::seconds(30), 4096, tskIDLE_PRIORITY + 1)
 {
 }
 
@@ -16,7 +16,7 @@ void MQTTTest::start(std::shared_ptr<smooth::core::network::InetAddress> address
 {
     mqtt.start();
     mqtt.connect_to(address, true);
-    mqtt.publish("TestTopic", "TestMessage", AT_LEAST_ONCE, false);
+    mqtt.publish("TOPIC", "Test", EXACTLY_ONCE, false);
 }
 
 void MQTTTest::disconnect()

@@ -1,3 +1,3 @@
 <component name="DependencyValidationManager">
-  <scope name="Source" pattern="!file[Smooth-test]:components/Smooth/docs//*" />
+  <scope name="Source" pattern="!file[Smooth-test]:components/Smooth/docs//*||file[Smooth-test]:components/Smooth/*" />
 </component>
