@@ -32,6 +32,12 @@ class MyApp
             mqtt.start(address);
         }
 
+        void tick() override
+        {
+            mqtt.publish_data();
+            ESP_LOGV("Main", "Free heap: %u", esp_get_free_heap_size());
+        }
+
     private:
         MQTTTest mqtt;
 };
