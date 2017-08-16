@@ -39,9 +39,9 @@ class MyApp
             mqtt.start();
             auto address = std::make_shared<smooth::core::network::IPv4>(mqtt_broker, 1883);
             mqtt.connect_to(address, true);
-            mqtt.subscribe("SubTopic");
-            mqtt.subscribe("Foo/Bar");
-            mqtt.subscribe("Wildcard/#");
+            mqtt.subscribe("SubTopic", QoS::AT_MOST_ONCE);
+            mqtt.subscribe("Foo/Bar", QoS::EXACTLY_ONCE);
+            mqtt.subscribe("Wildcard/#", QoS::AT_LEAST_ONCE);
         }
 
         void event(const MQTTData& event) override
@@ -82,17 +82,6 @@ extern "C" void app_main()
     wifi.set_auto_connect(true);
     app.set_system_log_level(ESP_LOG_ERROR);
 
-/*
-    LedControl led;
-    led.start();
-*/
-
-    app.set_system_log_level(ESP_LOG_ERROR);
-
-    ESP_LOGV("Main", "Free heap: %u", esp_get_free_heap_size());
-
     // Start the application. Note that this function never returns.
     app.start();
-
-
 }
