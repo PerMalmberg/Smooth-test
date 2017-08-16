@@ -42,6 +42,7 @@ class MyApp
             mqtt.subscribe("SubTopic", QoS::AT_MOST_ONCE);
             mqtt.subscribe("Foo/Bar", QoS::EXACTLY_ONCE);
             mqtt.subscribe("Wildcard/#", QoS::AT_LEAST_ONCE);
+            mqtt.unsubscribe("Foo");
         }
 
         void event(const MQTTData& event) override
