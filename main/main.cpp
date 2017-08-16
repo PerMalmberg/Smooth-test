@@ -1,10 +1,15 @@
 #include <driver/gpio.h>
 #include <smooth/core/network/Wifi.h>
+#include <smooth/core/ipc/TaskEventQueue.h>
+#include <smooth/application/network/mqtt/MQTT.h>
+#include <smooth/core/Application.h>
+#include "esp_system.h"
+#include "esp_log.h"
 
+#undef write
+#undef read
 
-#include "LedControl.h"
-#include "MQTTTest.h"
-#include <smooth/core/timer/PerfCount.h>
+#include <sstream>
 
 #include "wifi-creds.h"
 
@@ -12,15 +17,18 @@ using namespace smooth::core;
 using namespace smooth::core::ipc;
 using namespace smooth::core::network;
 using namespace std::chrono;
+using namespace smooth::application::network::mqtt;
 
 static const std::string mqtt_broker = "192.168.10.247";
 
 class MyApp
-        : public Application
+        : public Application,
+          public IEventListener<MQTTData>
 {
     public:
-        MyApp() : Application(tskIDLE_PRIORITY + 1, std::chrono::seconds(1)),
-                  mqtt()
+        MyApp() : Application(tskIDLE_PRIORITY + 1, std::chrono::seconds(5)),
+                  mqtt_data("mqtt_data", 10, *this, *this),
+                  mqtt("TestMQTT", std::chrono::seconds(30), 4096, tskIDLE_PRIORITY + 1, mqtt_data)
         {
         }
 
@@ -28,18 +36,37 @@ class MyApp
         {
             Application::init();
 
+            mqtt.start();
             auto address = std::make_shared<smooth::core::network::IPv4>(mqtt_broker, 1883);
-            mqtt.start(address);
+            mqtt.connect_to(address, true);
+            mqtt.subscribe("SubTopic");
+            mqtt.subscribe("Foo/Bar");
+            mqtt.subscribe("Wildcard/#");
+        }
+
+        void event(const MQTTData& event) override
+        {
+            std::stringstream ss;
+            for (auto& b : event.second)
+            {
+                ss << static_cast<char>(b);
+            }
+
+            ESP_LOGV("Received", "%s: %s", event.first.c_str(), ss.str().c_str());
         }
 
         void tick() override
         {
-            mqtt.publish_data();
             ESP_LOGV("Main", "Free heap: %u", esp_get_free_heap_size());
+
+            mqtt.publish("TOPIC", "0", EXACTLY_ONCE, false);
+            mqtt.publish("TOPIC1", "1", AT_MOST_ONCE, false);
+            mqtt.publish("TOPIC2", "2", AT_LEAST_ONCE, false);
         }
 
     private:
-        MQTTTest mqtt;
+        smooth::core::ipc::TaskEventQueue<MQTTData> mqtt_data;
+        smooth::application::network::mqtt::MQTT mqtt;
 };
 
 extern "C" void app_main()
