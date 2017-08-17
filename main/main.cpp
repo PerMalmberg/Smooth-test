@@ -1,7 +1,7 @@
 #include <driver/gpio.h>
 #include <smooth/core/network/Wifi.h>
 #include <smooth/core/ipc/TaskEventQueue.h>
-#include <smooth/application/network/mqtt/MQTT.h>
+#include <smooth/application/network/mqtt/MqttClient.h>
 #include <smooth/core/Application.h>
 #include "esp_system.h"
 #include "esp_log.h"
@@ -67,7 +67,7 @@ class MyApp
 
     private:
         smooth::core::ipc::TaskEventQueue<MQTTData> mqtt_data;
-        smooth::application::network::mqtt::MQTT mqtt;
+        smooth::application::network::mqtt::MqttClient mqtt;
 };
 
 extern "C" void app_main()
