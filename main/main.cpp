@@ -6,7 +6,7 @@
 #include <smooth/application/display/ST7735.h>
 //#include <smooth/core/io/spi/Master.h>
 #include <smooth/core/io/i2c/Master.h>
-#include <smooth/application/sensor/BMP280.h>
+#include <smooth/application/sensor/BME280.h>
 #include "esp_system.h"
 
 
@@ -92,8 +92,19 @@ extern "C" void app_main()
     smooth::core::io::i2c::Master i2c(I2C_NUM_0, GPIO_NUM_25, true, GPIO_NUM_26, true, 100000);
     ESP_LOGV( "main", "m.initialize() %d", i2c.initialize());
 
-    auto device = i2c.add_device<BMP280>();
-    device->read_id();
+    auto device = i2c.add_device<BME280>(0x76);
+
+    std::vector<uint8_t> found_devices{};
+    device->scan_i2c_bus(found_devices);
+
+    for( auto address : found_devices)
+    {
+        std::stringstream ss;
+        ss << "0x" << std::hex << static_cast<int>(address);
+        ESP_LOGV("main", "Found device at address %s", ss.str().c_str());
+    }
+
+    ESP_LOGV("main", "BME280 id: %x", device->read_id());
 
 //    // Create the application, it will run on the main task
 //    // so set an appropriate stack size in the config.
