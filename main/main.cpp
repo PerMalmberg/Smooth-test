@@ -3,8 +3,12 @@
 #include <smooth/core/ipc/TaskEventQueue.h>
 #include <smooth/application/network/mqtt/MqttClient.h>
 #include <smooth/core/Application.h>
+#include <smooth/application/display/ST7735.h>
+//#include <smooth/core/io/spi/Master.h>
+#include <smooth/core/io/i2c/Master.h>
+#include <smooth/application/sensor/BMP280.h>
 #include "esp_system.h"
-#include "esp_log.h"
+
 
 #undef write
 #undef read
@@ -18,6 +22,8 @@ using namespace smooth::core::ipc;
 using namespace smooth::core::network;
 using namespace std::chrono;
 using namespace smooth::application::network::mqtt;
+using namespace smooth::application::display;
+using namespace smooth::application::sensor;
 
 static const std::string mqtt_broker = "192.168.10.247";
 
@@ -72,17 +78,34 @@ class MyApp
 
 extern "C" void app_main()
 {
-    // Create the application, it will run on the main task
-    // so set an appropriate stack size in the config.
-    MyApp app;
+/*    io::spi::Master spi(HSPI_HOST,
+                      io::spi::SPI_DMA_Channel::DMA_1,
+                      GPIO_NUM_25,
+                      static_cast<gpio_num_t>(-1),
+                      GPIO_NUM_19);
 
+    ST7735 display(spi, GPIO_NUM_22, GPIO_NUM_21, GPIO_NUM_18, GPIO_NUM_5);
+    display.initialize();
+    display.set_back_light(true);
+    display.software_reset();
+*/
+    smooth::core::io::i2c::Master i2c(I2C_NUM_0, GPIO_NUM_25, true, GPIO_NUM_26, true, 100000);
+    ESP_LOGV( "main", "m.initialize() %d", i2c.initialize());
 
-    Wifi& wifi = app.get_wifi();
-    wifi.set_host_name("HAP-ESP32");
-    wifi.set_ap_credentials(WIFI_SSID, WIFI_PASSWORD);
-    wifi.set_auto_connect(true);
-    app.set_system_log_level(ESP_LOG_ERROR);
+    auto device = i2c.add_device<BMP280>();
+    device->read_id();
 
-    // Start the application. Note that this function never returns.
-    app.start();
+//    // Create the application, it will run on the main task
+//    // so set an appropriate stack size in the config.
+//    MyApp app;
+//
+//
+//    Wifi& wifi = app.get_wifi();
+//    wifi.set_host_name("HAP-ESP32");
+//    wifi.set_ap_credentials(WIFI_SSID, WIFI_PASSWORD);
+//    wifi.set_auto_connect(true);
+//    app.set_system_log_level(ESP_LOG_ERROR);
+//
+//    // Start the application. Note that this function never returns.
+//    app.start();
 }
