@@ -96,8 +96,8 @@ extern "C" void app_main()
     ESP_LOGV("main", "BME280 id: %x", device->read_id());
     ESP_LOGV("main", "BME280 configure_sensor: %d", device->configure_sensor(
             BME280::SensorMode::Normal,
-            BME280::OverSampling::Oversamplingx1,
-            BME280::OverSampling::Oversamplingx1,
+            BME280::OverSampling::Oversamplingx16,
+            BME280::OverSampling::Oversamplingx16,
             BME280::OverSampling::Oversamplingx16,
             BME280::StandbyTimeMS::ST_0_5,
             BME280::FilterCoeff::FC_16));
@@ -108,7 +108,7 @@ extern "C" void app_main()
         float hum, press, temp;
         bool res = device->read_measurements(hum, press, temp);
 
-        ESP_LOGV("main", "Status: %d, H: %f, P: %f, T: %f", res, hum, press, temp);
+        ESP_LOGV("main", "Status: %d, H: %f %%RH, P: %f hPa, T: %f°C", res, hum, press/100, temp);
         Task::delay(milliseconds(1000));
     }
 
