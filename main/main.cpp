@@ -91,21 +91,27 @@ extern "C" void app_main()
 */
     smooth::core::io::i2c::Master i2c(I2C_NUM_0, GPIO_NUM_25, true, GPIO_NUM_26, true, 100000);
 
-    auto device = i2c.add_device<BME280>(0x76);
+    auto device = i2c.create_device<BME280>(0x76);
+
     ESP_LOGV("main", "BME280 id: %x", device->read_id());
     ESP_LOGV("main", "BME280 configure_sensor: %d", device->configure_sensor(
             BME280::SensorMode::Normal,
-            BME280::OverSampling::Oversamplingx2,
-            BME280::OverSampling::Oversamplingx4,
-            BME280::OverSampling::Oversamplingx16));
+            BME280::OverSampling::Oversamplingx1,
+            BME280::OverSampling::Oversamplingx1,
+            BME280::OverSampling::Oversamplingx16,
+            BME280::StandbyTimeMS::ST_0_5,
+            BME280::FilterCoeff::FC_16));
 
-    BME280::SensorMode mode;
-    BME280::OverSampling temp;
-    BME280::OverSampling hum;
-    BME280::OverSampling press;
 
-    auto res = device->read_configuration(mode, hum, press, temp);
-    ESP_LOGV("main", "Read config %d, Mode: %d Hum: %d Press: %d Temp: %d ", res, mode, hum, press, temp );
+    while (true)
+    {
+        float hum, press, temp;
+        bool res = device->read_measurements(hum, press, temp);
+
+        ESP_LOGV("main", "Status: %d, H: %f, P: %f, T: %f", res, hum, press, temp);
+        Task::delay(milliseconds(1000));
+    }
+
 
 //    // Create the application, it will run on the main task
 //    // so set an appropriate stack size in the config.
