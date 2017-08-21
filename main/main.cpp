@@ -34,7 +34,8 @@ class MyApp
     public:
         MyApp() : Application(tskIDLE_PRIORITY + 1, std::chrono::seconds(5)),
                   mqtt_data("mqtt_data", 10, *this, *this),
-                  mqtt("TestMQTT", std::chrono::seconds(30), 4096, tskIDLE_PRIORITY + 1, mqtt_data)
+                  mqtt("TestMQTT", std::chrono::seconds(30), 4096, tskIDLE_PRIORITY + 1, mqtt_data),
+                  i2c(I2C_NUM_0, GPIO_NUM_25, true, GPIO_NUM_26, true, 100000)
         {
         }
 
@@ -45,10 +46,23 @@ class MyApp
             mqtt.start();
             auto address = std::make_shared<smooth::core::network::IPv4>(mqtt_broker, 1883);
             mqtt.connect_to(address, true);
-            mqtt.subscribe("SubTopic", QoS::AT_MOST_ONCE);
-            mqtt.subscribe("Foo/Bar", QoS::EXACTLY_ONCE);
+            mqtt.subscribe("Topic", QoS::AT_MOST_ONCE);
+            mqtt.subscribe("1/2/3", QoS::EXACTLY_ONCE);
             mqtt.subscribe("Wildcard/#", QoS::AT_LEAST_ONCE);
-            mqtt.unsubscribe("Foo");
+
+            bme280 = i2c.create_device<BME280>(0x76);
+
+            if (bme280)
+            {
+                ESP_LOGV("main", "BME280 id: %x", bme280->read_id());
+                ESP_LOGV("main", "BME280 configure_sensor: %d", bme280->configure_sensor(
+                        BME280::SensorMode::Normal,
+                        BME280::OverSampling::Oversamplingx16,
+                        BME280::OverSampling::Oversamplingx16,
+                        BME280::OverSampling::Oversamplingx16,
+                        BME280::StandbyTimeMS::ST_0_5,
+                        BME280::FilterCoeff::FC_16));
+            }
         }
 
         void event(const MQTTData& event) override
@@ -66,14 +80,34 @@ class MyApp
         {
             ESP_LOGV("Main", "Free heap: %u", esp_get_free_heap_size());
 
-            mqtt.publish("TOPIC", "0", EXACTLY_ONCE, false);
-            mqtt.publish("TOPIC1", "1", AT_MOST_ONCE, false);
-            mqtt.publish("TOPIC2", "2", AT_LEAST_ONCE, false);
+            if (bme280)
+            {
+                float hum, press, temp;
+                bool res = bme280->read_measurements(hum, press, temp);
+                if (res)
+                {
+                    ss.str("");
+                    ss << hum;
+                    mqtt.publish("HAP/humidity", ss.str(), EXACTLY_ONCE, false);
+                    ss.str("");
+                    ss << press / 100; // to hPa
+                    mqtt.publish("HAP/press", ss.str(), AT_MOST_ONCE, false);
+                    ss.str("");
+                    ss << temp;
+                    mqtt.publish("HAP/temp", ss.str(), AT_LEAST_ONCE, false);
+                    ss.str("");
+                    ss << esp_get_free_heap_size();
+                    mqtt.publish("HAP/heap", ss.str(), AT_LEAST_ONCE, false);
+                }
+            }
         }
 
     private:
         smooth::core::ipc::TaskEventQueue<MQTTData> mqtt_data;
         smooth::application::network::mqtt::MqttClient mqtt;
+        smooth::core::io::i2c::Master i2c;
+        std::unique_ptr<BME280> bme280{};
+        std::stringstream ss{};
 };
 
 extern "C" void app_main()
@@ -89,41 +123,16 @@ extern "C" void app_main()
     display.set_back_light(true);
     display.software_reset();
 */
-    smooth::core::io::i2c::Master i2c(I2C_NUM_0, GPIO_NUM_25, true, GPIO_NUM_26, true, 100000);
+    // Create the application, it will run on the main task
+    // so set an appropriate stack size in the config.
+    MyApp app;
 
-    auto device = i2c.create_device<BME280>(0x76);
+    Wifi& wifi = app.get_wifi();
+    wifi.set_host_name("HAP-ESP32");
+    wifi.set_ap_credentials(WIFI_SSID, WIFI_PASSWORD);
+    wifi.set_auto_connect(true);
+    app.set_system_log_level(ESP_LOG_ERROR);
 
-    ESP_LOGV("main", "BME280 id: %x", device->read_id());
-    ESP_LOGV("main", "BME280 configure_sensor: %d", device->configure_sensor(
-            BME280::SensorMode::Normal,
-            BME280::OverSampling::Oversamplingx16,
-            BME280::OverSampling::Oversamplingx16,
-            BME280::OverSampling::Oversamplingx16,
-            BME280::StandbyTimeMS::ST_0_5,
-            BME280::FilterCoeff::FC_16));
-
-
-    while (true)
-    {
-        float hum, press, temp;
-        bool res = device->read_measurements(hum, press, temp);
-
-        ESP_LOGV("main", "Status: %d, H: %f %%RH, P: %f hPa, T: %f°C", res, hum, press/100, temp);
-        Task::delay(milliseconds(1000));
-    }
-
-
-//    // Create the application, it will run on the main task
-//    // so set an appropriate stack size in the config.
-//    MyApp app;
-//
-//
-//    Wifi& wifi = app.get_wifi();
-//    wifi.set_host_name("HAP-ESP32");
-//    wifi.set_ap_credentials(WIFI_SSID, WIFI_PASSWORD);
-//    wifi.set_auto_connect(true);
-//    app.set_system_log_level(ESP_LOG_ERROR);
-//
-//    // Start the application. Note that this function never returns.
-//    app.start();
+    // Start the application. Note that this function never returns.
+    app.start();
 }
