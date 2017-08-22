@@ -32,10 +32,11 @@ class MyApp
           public IEventListener<MQTTData>
 {
     public:
-        MyApp() : Application(tskIDLE_PRIORITY + 1, std::chrono::seconds(5)),
+        MyApp() : Application(tskIDLE_PRIORITY + 1, std::chrono::seconds(1)),
                   mqtt_data("mqtt_data", 10, *this, *this),
                   mqtt("TestMQTT", std::chrono::seconds(30), 4096, tskIDLE_PRIORITY + 1, mqtt_data),
-                  i2c(I2C_NUM_0, GPIO_NUM_25, true, GPIO_NUM_26, true, 100000)
+                  i2c(I2C_NUM_0, GPIO_NUM_25, true, GPIO_NUM_26, true, 100000),
+                  led(GPIO_NUM_5, true)
         {
         }
 
@@ -46,9 +47,7 @@ class MyApp
             mqtt.start();
             auto address = std::make_shared<smooth::core::network::IPv4>(mqtt_broker, 1883);
             mqtt.connect_to(address, true);
-            mqtt.subscribe("Topic", QoS::AT_MOST_ONCE);
-            mqtt.subscribe("1/2/3", QoS::EXACTLY_ONCE);
-            mqtt.subscribe("Wildcard/#", QoS::AT_LEAST_ONCE);
+            mqtt.subscribe("HAP/humidity", QoS::AT_MOST_ONCE);
 
             bme280 = i2c.create_device<BME280>(0x76);
 
@@ -72,6 +71,10 @@ class MyApp
             {
                 ss << static_cast<char>(b);
             }
+
+            led.clr();
+            delay(milliseconds(200));
+            led.set();
 
             ESP_LOGV("Received", "%s: %s", event.first.c_str(), ss.str().c_str());
         }
@@ -100,6 +103,15 @@ class MyApp
                     mqtt.publish("HAP/heap", ss.str(), AT_LEAST_ONCE, false);
                 }
             }
+
+            if (mqtt.is_connected())
+            {
+                led.set();
+            }
+            else
+            {
+                led.clr();
+            }
         }
 
     private:
@@ -108,6 +120,7 @@ class MyApp
         smooth::core::io::i2c::Master i2c;
         std::unique_ptr<BME280> bme280{};
         std::stringstream ss{};
+        smooth::core::io::Output led;
 };
 
 extern "C" void app_main()
