@@ -106,16 +106,20 @@ class MyApp
 
             if (mqtt.is_connected())
             {
-                for( int i = 0; i < 10; ++i)
+                for( int i = 0; i < 3; ++i)
                 {
                     led.clr();
-                    delay(milliseconds(20));
+                    delay(milliseconds(50));
                     led.set();
                 }
             }
             else
             {
-                 led.clr();
+                led.clr();
+                delay(milliseconds(500));
+                led.set();
+                delay(milliseconds(500));
+                led.clr();
             }
         }
 
