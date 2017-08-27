@@ -41,7 +41,6 @@ class MyApp
                   mqtt("TestMQTT", std::chrono::seconds(30), 4096, tskIDLE_PRIORITY + 1, mqtt_data),
                   i2c(I2C_NUM_0, GPIO_NUM_25, true, GPIO_NUM_26, true, 1000000),
                   i2c_2(I2C_NUM_1, GPIO_NUM_14, true, GPIO_NUM_27, true, 1000000),
-                  led(GPIO_NUM_5, true),
                   gpb0(GPIO_NUM_15, true),
                   gpb1(GPIO_NUM_5, true),
                   gpb2(GPIO_NUM_18, true),
@@ -62,7 +61,7 @@ class MyApp
             mqtt.connect_to(address, true);
             mqtt.subscribe("HAP/humidity", QoS::AT_MOST_ONCE);
 */
-            bme280 = i2c.create_device<BME280>(0x76);
+            /*bme280 = i2c.create_device<BME280>(0x76);
 
             if (bme280)
             {
@@ -75,7 +74,7 @@ class MyApp
                         BME280::StandbyTimeMS::ST_0_5,
                         BME280::FilterCoeff::FC_16));
             }
-
+*/
             mcp23017 = i2c_2.create_device<MCP23017>(0x20);
             if (mcp23017)
             {
@@ -164,12 +163,7 @@ class MyApp
                 }
             }
 
-            if (!mqtt.is_connected())
-            {
-                led.set();
-                delay(milliseconds(500));
-                led.clr();
-            }
+
             */
         }
 
@@ -181,7 +175,6 @@ class MyApp
         std::unique_ptr<BME280> bme280{};
         std::unique_ptr<MCP23017> mcp23017;
         std::stringstream ss{};
-        smooth::core::io::Output led;
         uint8_t ix = 0;
         io::Output gpb0;
         io::Output gpb1;
@@ -210,12 +203,12 @@ extern "C" void app_main()
     // so set an appropriate stack size in the config.
     MyApp app;
 
-    Wifi& wifi = app.get_wifi();
+/*    Wifi& wifi = app.get_wifi();
     wifi.set_host_name("HAP-ESP32");
     wifi.set_ap_credentials(WIFI_SSID, WIFI_PASSWORD);
     wifi.set_auto_connect(true);
     app.set_system_log_level(ESP_LOG_ERROR);
-
+*/
     // Start the application. Note that this function never returns.
     app.start();
 }
