@@ -42,25 +42,26 @@ class MyApp
                   i2c(I2C_NUM_0, GPIO_NUM_25, true, GPIO_NUM_26, true, 1000000),
                   i2c_2(I2C_NUM_1, GPIO_NUM_14, true, GPIO_NUM_27, true, 1000000),
                   led(GPIO_NUM_5, true),
-                  gpb0(GPIO_NUM_15, GPIO_PULLDOWN_ONLY),
-                  gpb1(GPIO_NUM_5, GPIO_PULLDOWN_ONLY),
-                  gpb2(GPIO_NUM_18, GPIO_PULLDOWN_ONLY),
-                  gpb3(GPIO_NUM_23, GPIO_PULLDOWN_ONLY),
-                  gpb4(GPIO_NUM_19, GPIO_PULLDOWN_ONLY),
-                  gpb5(GPIO_NUM_22, GPIO_PULLDOWN_ONLY),
-                  gpb6(GPIO_NUM_21, GPIO_PULLDOWN_ONLY)
+                  gpb0(GPIO_NUM_15, true),
+                  gpb1(GPIO_NUM_5, true),
+                  gpb2(GPIO_NUM_18, true),
+                  gpb3(GPIO_NUM_23, true),
+                  gpb4(GPIO_NUM_19, true),
+                  gpb5(GPIO_NUM_22, true),
+                  gpb6(GPIO_NUM_21, true),
+                  gpb7(GPIO_NUM_3, true)
         {
         }
 
         void init() override
         {
             Application::init();
-
+/*
             mqtt.start();
             auto address = std::make_shared<smooth::core::network::IPv4>(mqtt_broker, 1883);
             mqtt.connect_to(address, true);
             mqtt.subscribe("HAP/humidity", QoS::AT_MOST_ONCE);
-
+*/
             bme280 = i2c.create_device<BME280>(0x76);
 
             if (bme280)
@@ -84,8 +85,8 @@ class MyApp
                 ESP_LOGV("MCP23017 state set", "%d", known);
                 if (present && known)
                 {
-                    // Set all port B I/O as output
-                    mcp23017->configure_ports(0x00, 0x00, 0x00, 0x00, 0x00, 0x00);
+                    // Set all port B I/O as intput
+                    mcp23017->configure_ports(0xFF, 0xFF, 0x00, 0xFF, 0xFF, 0x00);
                 }
                 else
                 {
@@ -111,19 +112,37 @@ class MyApp
 
             if (mcp23017)
             {
-
-                mask <<= 1;
-                if (mask == 0)
+                ++ix;
+                if (ix == 8)
                 {
-                    mask = 1;
+                    ix = 0;
                 }
+                ESP_LOGV("ix", "%d", ix);
 
-                mcp23017->set_output(MCP23017::Port::B, mask);
+                const std::array<io::Output*, 8> outs{&gpb0, &gpb1, &gpb2, &gpb3, &gpb4, &gpb5, &gpb6, &gpb7};
 
-                ESP_LOGV("Read", "mask %d, %d %d %d %d %d %d %d", mask, gpb0.read(), gpb1.read(), gpb2.read(),
-                         gpb3.read(), gpb4.read(), gpb5.read(), gpb6.read());
+                for (int i = 0; i < outs.size(); ++i)
+                {
+                    outs[i]->clr();
+                }
+                outs[ix]->set();
+
+                uint8_t value;
+                if(mcp23017->read_input(MCP23017::Port::B, value))
+                {
+
+                    ESP_LOGV("Read", "%d %d %d %d %d %d %d %d",
+                             (value & 0x80) > 0,
+                             (value & 0x40) > 0,
+                             (value & 0x20) > 0,
+                             (value & 0x10) > 0,
+                             (value & 0x08) > 0,
+                             (value & 0x04) > 0,
+                             (value & 0x02) > 0,
+                             (value & 0x01) > 0);
+                }
             }
-
+/*
             if (bme280)
             {
                 float hum, press, temp;
@@ -151,6 +170,7 @@ class MyApp
                 delay(milliseconds(500));
                 led.clr();
             }
+            */
         }
 
     private:
@@ -162,14 +182,15 @@ class MyApp
         std::unique_ptr<MCP23017> mcp23017;
         std::stringstream ss{};
         smooth::core::io::Output led;
-        uint8_t mask = 1;
-        io::Input gpb0;
-        io::Input gpb1;
-        io::Input gpb2;
-        io::Input gpb3;
-        io::Input gpb4;
-        io::Input gpb5;
-        io::Input gpb6;
+        uint8_t ix = 0;
+        io::Output gpb0;
+        io::Output gpb1;
+        io::Output gpb2;
+        io::Output gpb3;
+        io::Output gpb4;
+        io::Output gpb5;
+        io::Output gpb6;
+        io::Output gpb7;
 };
 
 extern "C" void app_main()
