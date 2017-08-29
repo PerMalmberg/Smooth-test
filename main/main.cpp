@@ -36,19 +36,19 @@ class MyApp
           public IEventListener<MQTTData>
 {
     public:
-        MyApp() : Application(tskIDLE_PRIORITY + 1, std::chrono::milliseconds(1000)),
+        MyApp() : Application(tskIDLE_PRIORITY + 1, std::chrono::milliseconds(0)),
                   mqtt_data("mqtt_data", 10, *this, *this),
                   mqtt("TestMQTT", std::chrono::seconds(30), 4096, tskIDLE_PRIORITY + 1, mqtt_data),
-                  i2c(I2C_NUM_0, GPIO_NUM_25, true, GPIO_NUM_26, true, 1000000),
-                  i2c_2(I2C_NUM_1, GPIO_NUM_14, true, GPIO_NUM_27, true, 1000000),
-                  gpb0(GPIO_NUM_15, true),
-                  gpb1(GPIO_NUM_5, true),
-                  gpb2(GPIO_NUM_18, true),
-                  gpb3(GPIO_NUM_23, true),
-                  gpb4(GPIO_NUM_19, true),
-                  gpb5(GPIO_NUM_22, true),
-                  gpb6(GPIO_NUM_21, true),
-                  gpb7(GPIO_NUM_3, true)
+                  i2c(I2C_NUM_0, GPIO_NUM_25, true, GPIO_NUM_26, true, 100000),
+                  i2c_2(I2C_NUM_1, GPIO_NUM_14, true, GPIO_NUM_27, true, 100000),
+                  gpb0(GPIO_NUM_2, true, false, true),
+                  gpb1(GPIO_NUM_15, true, false, true),
+                  gpb2(GPIO_NUM_5, true, false, true),
+                  gpb3(GPIO_NUM_18, true, false, true),
+                  gpb4(GPIO_NUM_23, true, false, true),
+                  gpb5(GPIO_NUM_19, true, false, true),
+                  gpb6(GPIO_NUM_22, true, false, true),
+                  gpb7(GPIO_NUM_21, true, false, true)
         {
         }
 
@@ -107,8 +107,6 @@ class MyApp
 
         void tick() override
         {
-            ESP_LOGV("Main", "Free heap: %u", esp_get_free_heap_size());
-
             if (mcp23017)
             {
                 ++ix;
@@ -141,6 +139,7 @@ class MyApp
                              (value & 0x01) > 0);
                 }
             }
+
 /*
             if (bme280)
             {
