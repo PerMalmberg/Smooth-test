@@ -9,7 +9,7 @@
 #include <smooth/application/sensor/BME280.h>
 #include <smooth/application/io/MCP23017.h>
 #include <smooth/core/io/Input.h>
-#include <smooth/core/io/EventInput.h>
+#include <smooth/core/io/InterruptInput.h>
 #include <smooth/core/io/Output.h>
 #include "esp_system.h"
 
@@ -35,7 +35,7 @@ static const std::string mqtt_broker = "192.168.10.247";
 class MyApp
         : public Application,
           public IEventListener<MQTTData>,
-          public IEventListener<smooth::core::io::InputInterruptEventEvent>
+          public IEventListener<smooth::core::io::InterruptInputEvent>
 {
     public:
 
@@ -54,7 +54,7 @@ class MyApp
                   gpb6(GPIO_NUM_22, true, false, true),
                   gpb7(GPIO_NUM_21, true, false, true),
                   int_a(io_int_event, GPIO_NUM_35, false, true),
-                  int_b(GPIO_NUM_34, false, true)
+                  int_b(io_int_event, GPIO_NUM_34, false, true)
         {
         }
 
@@ -118,19 +118,6 @@ class MyApp
 
                 mcp23017->set_output(MCP23017::Port::A, 0xE0);
 
-                if (int_a.read())
-                {
-                    uint8_t value;
-                    mcp23017->read_interrupt_capture(MCP23017::Port::A, value);
-                    ESP_LOGV("Int", "A %x", value);
-                }
-
-                if (int_b.read())
-                {
-                    uint8_t value;
-                    mcp23017->read_interrupt_capture(MCP23017::Port::B, value);
-                    ESP_LOGV("Int", "B %x", value);
-                }
 
 /*                ++ix;
                 if (ix == 8)
@@ -196,14 +183,23 @@ class MyApp
             */
         }
 
-        void event(const smooth::core::io::InputInterruptEventEvent& event) override
+        void event(const smooth::core::io::InterruptInputEvent& event) override
         {
-            ESP_LOGV("ASD", "%d %d", event.get_io(), event.get_state());
+            uint8_t value;
+            if(event.get_io() == int_a.get_io()){
+                mcp23017->read_interrupt_capture(MCP23017::Port::A, value);
+                ESP_LOGV("Int", "A %x", value);
+            }
+            else if(event.get_io() == int_b.get_io())
+            {
+                mcp23017->read_interrupt_capture(MCP23017::Port::B, value);
+                ESP_LOGV("Int", "B %x", value);
+            }
         }
 
     private:
         smooth::core::ipc::TaskEventQueue<MQTTData> mqtt_data;
-        smooth::core::ipc::TaskEventQueue<smooth::core::io::InputInterruptEventEvent> io_int_event;
+        smooth::core::ipc::TaskEventQueue<smooth::core::io::InterruptInputEvent> io_int_event;
         smooth::application::network::mqtt::MqttClient mqtt;
         smooth::core::io::i2c::Master i2c;
         smooth::core::io::i2c::Master i2c_2;
@@ -219,8 +215,8 @@ class MyApp
         io::Output gpb5;
         io::Output gpb6;
         io::Output gpb7;
-        io::EventInput int_a;
-        io::Input int_b;
+        io::InterruptInput int_a;
+        io::InterruptInput int_b;
 };
 
 extern "C" void app_main()
