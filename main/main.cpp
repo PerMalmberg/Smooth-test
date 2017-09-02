@@ -10,7 +10,7 @@
 #include <smooth/application/io/MCP23017.h>
 #include <smooth/core/io/Input.h>
 #include <smooth/core/io/InterruptInput.h>
-#include <smooth/core/io/Output.h>
+#include <smooth/core/util/ByteSet.h>
 #include "esp_system.h"
 
 
@@ -21,14 +21,16 @@
 
 #include "wifi-creds.h"
 
+using namespace smooth;
 using namespace smooth::core;
+using namespace smooth::core::util;
 using namespace smooth::core::ipc;
 using namespace smooth::core::network;
-using namespace std::chrono;
 using namespace smooth::application::network::mqtt;
 using namespace smooth::application::display;
 using namespace smooth::application::sensor;
 using namespace smooth::application::io;
+using namespace std::chrono;
 
 static const std::string mqtt_broker = "192.168.10.247";
 
@@ -39,20 +41,12 @@ class MyApp
 {
     public:
 
-        MyApp() : Application(tskIDLE_PRIORITY + 1, std::chrono::milliseconds(1)),
+        MyApp() : Application(tskIDLE_PRIORITY + 1, std::chrono::milliseconds(1000)),
                   mqtt_data("mqtt_data", 10, *this, *this),
                   io_int_event("io_int_event", 5, *this, *this),
                   mqtt("TestMQTT", std::chrono::seconds(30), 4096, tskIDLE_PRIORITY + 1, mqtt_data),
                   i2c(I2C_NUM_0, GPIO_NUM_25, true, GPIO_NUM_26, true, 100000),
                   i2c_2(I2C_NUM_1, GPIO_NUM_14, true, GPIO_NUM_27, true, 100000),
-                  gpb0(GPIO_NUM_2, true, false, true),
-                  gpb1(GPIO_NUM_15, true, false, true),
-                  gpb2(GPIO_NUM_5, true, false, true),
-                  gpb3(GPIO_NUM_18, true, false, true),
-                  gpb4(GPIO_NUM_23, true, false, true),
-                  gpb5(GPIO_NUM_19, true, false, true),
-                  gpb6(GPIO_NUM_22, true, false, true),
-                  gpb7(GPIO_NUM_21, true, false, true),
                   int_a(io_int_event, GPIO_NUM_35, false, true),
                   int_b(io_int_event, GPIO_NUM_34, false, true)
         {
@@ -61,13 +55,13 @@ class MyApp
         void init() override
         {
             Application::init();
-/*
+
             mqtt.start();
             auto address = std::make_shared<smooth::core::network::IPv4>(mqtt_broker, 1883);
             mqtt.connect_to(address, true);
             mqtt.subscribe("HAP/humidity", QoS::AT_MOST_ONCE);
-*/
-            /*bme280 = i2c.create_device<BME280>(0x76);
+
+            bme280 = i2c.create_device<BME280>(0x76);
 
             if (bme280)
             {
@@ -80,7 +74,7 @@ class MyApp
                         BME280::StandbyTimeMS::ST_0_5,
                         BME280::FilterCoeff::FC_16));
             }
-        */
+
             mcp23017 = i2c_2.create_device<MCP23017>(0x20);
             if (mcp23017)
             {
@@ -113,51 +107,6 @@ class MyApp
 
         void tick() override
         {
-            if (mcp23017)
-            {
-
-                mcp23017->set_output(MCP23017::Port::A, 0xE0);
-
-
-/*                ++ix;
-                if (ix == 8)
-                {
-                    ix = 0;
-                }
-
-                ESP_LOGV("ix", "%d", ix);
-
-                const std::array<io::Output*, 8> outs{&gpb0, &gpb1, &gpb2, &gpb3, &gpb4, &gpb5, &gpb6, &gpb7};
-
-                for (int i = 0; i < outs.size(); ++i)
-                {
-                    outs[i]->clr();
-                }
-                outs[ix]->set();
-
-                uint8_t value;
-                if (mcp23017->read_input(MCP23017::Port::B, value))
-                {
-
-                    ESP_LOGV("Read", "%d %d %d %d %d %d %d %d",
-                             (value & 0x80) > 0,
-                             (value & 0x40) > 0,
-                             (value & 0x20) > 0,
-                             (value & 0x10) > 0,
-                             (value & 0x08) > 0,
-                             (value & 0x04) > 0,
-                             (value & 0x02) > 0,
-                             (value & 0x01) > 0);
-
-                    mcp23017->set_output(MCP23017::Port::A, 0x7F);
-
-
-                }*/
-            }
-
-
-
-/*
             if (bme280)
             {
                 float hum, press, temp;
@@ -169,28 +118,36 @@ class MyApp
                     mqtt.publish("HAP/humidity", ss.str(), EXACTLY_ONCE, false);
                     ss.str("");
                     ss << press / 100; // to hPa
-                    mqtt.publish("HAP/press", ss.str(), AT_MOST_ONCE, false);
+                    mqtt.publish("HAP/press", ss.str(), EXACTLY_ONCE, false);
                     ss.str("");
                     ss << temp;
-                    mqtt.publish("HAP/temp", ss.str(), AT_LEAST_ONCE, false);
+                    mqtt.publish("HAP/temp", ss.str(), EXACTLY_ONCE, false);
                     ss.str("");
                     ss << esp_get_free_heap_size();
-                    mqtt.publish("HAP/heap", ss.str(), AT_LEAST_ONCE, false);
+                    mqtt.publish("HAP/heap", ss.str(), EXACTLY_ONCE, false);
+
+                    if( mcp23017 )
+                    {
+                        ByteSet b(0);
+                        b.set(5, temp <= 24);
+                        b.set(6, temp <= 25);
+                        b.set(7, temp <= 26);
+
+                        mcp23017->set_output(MCP23017::Port::A, b);
+                    }
                 }
             }
-
-
-            */
         }
 
         void event(const smooth::core::io::InterruptInputEvent& event) override
         {
             uint8_t value;
-            if(event.get_io() == int_a.get_io()){
+            if (event.get_io() == int_a.get_io())
+            {
                 mcp23017->read_interrupt_capture(MCP23017::Port::A, value);
                 ESP_LOGV("Int", "A %x", value);
             }
-            else if(event.get_io() == int_b.get_io())
+            else if (event.get_io() == int_b.get_io())
             {
                 mcp23017->read_interrupt_capture(MCP23017::Port::B, value);
                 ESP_LOGV("Int", "B %x", value);
@@ -206,15 +163,6 @@ class MyApp
         std::unique_ptr<BME280> bme280{};
         std::unique_ptr<MCP23017> mcp23017;
         std::stringstream ss{};
-        uint8_t ix = 0;
-        io::Output gpb0;
-        io::Output gpb1;
-        io::Output gpb2;
-        io::Output gpb3;
-        io::Output gpb4;
-        io::Output gpb5;
-        io::Output gpb6;
-        io::Output gpb7;
         io::InterruptInput int_a;
         io::InterruptInput int_b;
 };
@@ -236,12 +184,12 @@ extern "C" void app_main()
     // so set an appropriate stack size in the config.
     MyApp app;
 
-/*    Wifi& wifi = app.get_wifi();
+    Wifi& wifi = app.get_wifi();
     wifi.set_host_name("HAP-ESP32");
     wifi.set_ap_credentials(WIFI_SSID, WIFI_PASSWORD);
     wifi.set_auto_connect(true);
     app.set_system_log_level(ESP_LOG_ERROR);
-*/
+
     // Start the application. Note that this function never returns.
     app.start();
 }
