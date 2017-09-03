@@ -1,6 +1,7 @@
 #include <driver/gpio.h>
 #include <smooth/core/network/Wifi.h>
 #include <smooth/core/ipc/TaskEventQueue.h>
+#include <smooth/core/ipc/ISRTaskEventQueue.h>
 #include <smooth/application/network/mqtt/MqttClient.h>
 #include <smooth/core/Application.h>
 #include <smooth/application/display/ST7735.h>
@@ -32,7 +33,7 @@ using namespace smooth::application::sensor;
 using namespace smooth::application::io;
 using namespace std::chrono;
 
-static const std::string mqtt_broker = "192.168.10.247";
+static const std::string mqtt_broker = "192.168.10.44";
 
 class MyApp
         : public Application,
@@ -43,7 +44,7 @@ class MyApp
 
         MyApp() : Application(tskIDLE_PRIORITY + 1, std::chrono::milliseconds(1000)),
                   mqtt_data("mqtt_data", 10, *this, *this),
-                  io_int_event("io_int_event", 5, *this, *this),
+                  io_int_event(*this, *this),
                   mqtt("TestMQTT", std::chrono::seconds(30), 4096, tskIDLE_PRIORITY + 1, mqtt_data),
                   i2c(I2C_NUM_0, GPIO_NUM_25, true, GPIO_NUM_26, true, 100000),
                   i2c_2(I2C_NUM_1, GPIO_NUM_14, true, GPIO_NUM_27, true, 100000),
@@ -156,7 +157,7 @@ class MyApp
 
     private:
         smooth::core::ipc::TaskEventQueue<MQTTData> mqtt_data;
-        smooth::core::ipc::TaskEventQueue<smooth::core::io::InterruptInputEvent> io_int_event;
+        smooth::core::ipc::ISRTaskEventQueue<smooth::core::io::InterruptInputEvent, 10> io_int_event;
         smooth::application::network::mqtt::MqttClient mqtt;
         smooth::core::io::i2c::Master i2c;
         smooth::core::io::i2c::Master i2c_2;
