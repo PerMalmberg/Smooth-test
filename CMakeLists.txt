@@ -33,6 +33,7 @@ set(COMPONENTS
         tcpip_adapter
         lwip
         openssl
+        soc/esp32
         )
 
 set(COMPONENT_INCLUDE_DIRS "")

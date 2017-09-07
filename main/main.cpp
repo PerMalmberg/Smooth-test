@@ -12,6 +12,7 @@
 #include <smooth/core/io/Input.h>
 #include <smooth/core/io/InterruptInput.h>
 #include <smooth/core/util/ByteSet.h>
+#include <smooth/application/rgb_led/WS2812B.h>
 #include "esp_system.h"
 
 
@@ -127,12 +128,12 @@ class MyApp
                     ss << esp_get_free_heap_size();
                     mqtt.publish("HAP/heap", ss.str(), EXACTLY_ONCE, false);
 
-                    if( mcp23017 )
+                    if (mcp23017)
                     {
                         ByteSet b(0);
-                        b.set(5, temp <= 24);
-                        b.set(6, temp <= 25);
-                        b.set(7, temp <= 26);
+                        b.set(5, temp <= 25);
+                        b.set(6, temp <= 26);
+                        b.set(7, temp <= 27);
 
                         mcp23017->set_output(MCP23017::Port::A, b);
                     }
@@ -183,7 +184,7 @@ extern "C" void app_main()
 */
     // Create the application, it will run on the main task
     // so set an appropriate stack size in the config.
-    MyApp app;
+    /*MyApp app;
 
     Wifi& wifi = app.get_wifi();
     wifi.set_host_name("HAP-ESP32");
@@ -192,5 +193,14 @@ extern "C" void app_main()
     app.set_system_log_level(ESP_LOG_ERROR);
 
     // Start the application. Note that this function never returns.
-    app.start();
+    app.start();*/
+
+    application::rgb_led::WS2812B rgb(RMT_CHANNEL_0, GPIO_NUM_21, 1);
+    rgb.set_pixel(0, 0x1, 0, 0);
+/*    rgb.set_pixel(1, 0, 0xFF, 0);
+    rgb.set_pixel(2, 0, 0, 0x8);*/
+    rgb.apply();
+
+    Task::delay(milliseconds(2000));
+    ESP_LOGV("ASDF", "SADFS");
 }
