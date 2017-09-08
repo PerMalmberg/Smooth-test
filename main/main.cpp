@@ -195,12 +195,20 @@ extern "C" void app_main()
     // Start the application. Note that this function never returns.
     app.start();*/
 
-    application::rgb_led::WS2812B rgb(RMT_CHANNEL_0, GPIO_NUM_21, 1);
-    rgb.set_pixel(0, 0x1, 0, 0);
-/*    rgb.set_pixel(1, 0, 0xFF, 0);
-    rgb.set_pixel(2, 0, 0, 0x8);*/
-    rgb.apply();
+    application::rgb_led::WS2812B rgb(RMT_CHANNEL_0, GPIO_NUM_21, 3);
+    uint16_t c = 0;
+    for(;;)
+    {
+        rgb.set_pixel(0, c, c, c);
+        rgb.set_pixel(1, c, c, c);
+        rgb.set_pixel(2, c, c, c);
+        rgb.apply();
+        c++;
+        if(c > 255)
+        {
+            c = 0;
+        }
+        Task::delay(milliseconds(100));
+    }
 
-    Task::delay(milliseconds(2000));
-    ESP_LOGV("ASDF", "SADFS");
 }
