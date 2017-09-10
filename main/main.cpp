@@ -12,7 +12,7 @@
 #include <smooth/core/io/Input.h>
 #include <smooth/core/io/InterruptInput.h>
 #include <smooth/core/util/ByteSet.h>
-#include <smooth/application/rgb_led/WS2812B.h>
+#include <smooth/application/rgb_led/RGBLed.h>
 #include "esp_system.h"
 
 
@@ -195,20 +195,27 @@ extern "C" void app_main()
     // Start the application. Note that this function never returns.
     app.start();*/
 
-    application::rgb_led::WS2812B rgb(RMT_CHANNEL_0, GPIO_NUM_21, 3);
-    uint16_t c = 0;
-    for(;;)
+    const int led_count = 3;
+    application::rgb_led::RGBLed rgb(RMT_CHANNEL_0, GPIO_NUM_21, led_count, application::rgb_led::WS2812B());
+
+    int toggle = 0;
+
+    for (;;)
     {
-        rgb.set_pixel(0, c, c, c);
-        rgb.set_pixel(1, c, c, c);
-        rgb.set_pixel(2, c, c, c);
+        rgb.set_pixel(0, toggle == 0 ? 0x22 : 0, toggle == 1 ? 0x22 : 0, toggle == 2 ? 0x22 : 0);
+        rgb.set_pixel(1, toggle == 1 ? 0x22 : 0, toggle == 2 ? 0x22 : 0, toggle == 0 ? 0x22 : 0);
+        rgb.set_pixel(2, toggle == 2 ? 0x22 : 0, toggle == 0 ? 0x22 : 0, toggle == 1 ? 0x22 : 0);
         rgb.apply();
-        c++;
-        if(c > 255)
+
+        toggle += 1;
+        if (toggle > 2)
         {
-            c = 0;
+            toggle = 0;
         }
-        Task::delay(milliseconds(100));
+
+        Task::delay(milliseconds(500));
+
+
     }
 
 }
