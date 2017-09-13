@@ -9,6 +9,7 @@
 #include <smooth/core/io/i2c/Master.h>
 #include <smooth/application/sensor/BME280.h>
 #include <smooth/application/io/MCP23017.h>
+#include <smooth/application/io/ADS1115.h>
 #include <smooth/core/io/Input.h>
 #include <smooth/core/io/InterruptInput.h>
 #include <smooth/core/util/ByteSet.h>
@@ -37,20 +38,13 @@ using namespace std::chrono;
 static const std::string mqtt_broker = "192.168.10.44";
 
 class MyApp
-        : public Application,
-          public IEventListener<MQTTData>,
-          public IEventListener<smooth::core::io::InterruptInputEvent>
+        : public Application
 {
     public:
 
         MyApp() : Application(tskIDLE_PRIORITY + 1, std::chrono::milliseconds(1000)),
-                  mqtt_data("mqtt_data", 10, *this, *this),
-                  io_int_event(*this, *this),
-                  mqtt("TestMQTT", std::chrono::seconds(30), 4096, tskIDLE_PRIORITY + 1, mqtt_data),
-                  i2c(I2C_NUM_0, GPIO_NUM_25, true, GPIO_NUM_26, true, 100000),
-                  i2c_2(I2C_NUM_1, GPIO_NUM_14, true, GPIO_NUM_27, true, 100000),
-                  int_a(io_int_event, GPIO_NUM_35, false, true),
-                  int_b(io_int_event, GPIO_NUM_34, false, true)
+                  i2c(I2C_NUM_0, GPIO_NUM_19, true, GPIO_NUM_22, true, 100000),
+                  adc()
         {
         }
 
@@ -58,115 +52,46 @@ class MyApp
         {
             Application::init();
 
-            mqtt.start();
-            auto address = std::make_shared<smooth::core::network::IPv4>(mqtt_broker, 1883);
-            mqtt.connect_to(address, true);
-            mqtt.subscribe("HAP/humidity", QoS::AT_MOST_ONCE);
+            adc = i2c.create_device<smooth::application::io::ADS1115>(0x48);
+            bool res = adc->configure(
+                    ADS1115::Multiplexer::Single_AIN0,
+                    ADS1115::Range::FSR_6_144,
+                    ADS1115::OperationalMode::Continuous,
+                    ADS1115::DataRate::SPS_16,
+                    ADS1115::ComparatorMode::Traditional,
+                    ADS1115::Alert_Ready_Polarity::ActiveLow,
+                    ADS1115::LatchingComparator::NonLatching,
+                    ADS1115::AssertStrategy::AssertAfterFourConversion);
 
-            bme280 = i2c.create_device<BME280>(0x76);
+            ESP_LOGV("ACD", "Configured: %d", res);
 
-            if (bme280)
-            {
-                ESP_LOGV("main", "BME280 id: %x", bme280->read_id());
-                ESP_LOGV("main", "BME280 configure_sensor: %d", bme280->configure_sensor(
-                        BME280::SensorMode::Normal,
-                        BME280::OverSampling::Oversamplingx16,
-                        BME280::OverSampling::Oversamplingx16,
-                        BME280::OverSampling::Oversamplingx16,
-                        BME280::StandbyTimeMS::ST_0_5,
-                        BME280::FilterCoeff::FC_16));
-            }
 
-            mcp23017 = i2c_2.create_device<MCP23017>(0x20);
-            if (mcp23017)
-            {
-                bool present = mcp23017->is_present();
-                bool known = mcp23017->put_device_into_known_state(false);
-                ESP_LOGV("MCP23017 detected", "%d", present);
-                ESP_LOGV("MCP23017 state set", "%d", known);
-                if (present && known)
-                {
-                    mcp23017->configure_device(false, true, 0xFF, 0x00, 0x00, 0xFF, 0x00, 0x00);
-                    mcp23017->configure_ports(0x1F, 0xFF, 0x00, 0xFF, 0xFF, 0x00);
-                }
-                else
-                {
-                    mcp23017.reset();
-                }
-            }
         }
 
-        void event(const MQTTData& event) override
-        {
-            std::stringstream ss;
-            for (auto& b : event.second)
-            {
-                ss << static_cast<char>(b);
-            }
-
-            ESP_LOGV("Received", "%s: %s", event.first.c_str(), ss.str().c_str());
-        }
 
         void tick() override
         {
-            if (bme280)
+
+            if (adc)
             {
-                float hum, press, temp;
-                bool res = bme280->read_measurements(hum, press, temp);
-                if (res)
-                {
-                    ss.str("");
-                    ss << hum;
-                    mqtt.publish("HAP/humidity", ss.str(), EXACTLY_ONCE, false);
-                    ss.str("");
-                    ss << press / 100; // to hPa
-                    mqtt.publish("HAP/press", ss.str(), EXACTLY_ONCE, false);
-                    ss.str("");
-                    ss << temp;
-                    mqtt.publish("HAP/temp", ss.str(), EXACTLY_ONCE, false);
-                    ss.str("");
-                    ss << esp_get_free_heap_size();
-                    mqtt.publish("HAP/heap", ss.str(), EXACTLY_ONCE, false);
+                uint16_t ain1, ain2, ain3, ain4;
+                bool res = adc->read_conversion(ADS1115::Multiplexer::Single_AIN0, ain1)
+                && adc->read_conversion(ADS1115::Multiplexer::Single_AIN1, ain2)
+                && adc->read_conversion(ADS1115::Multiplexer::Single_AIN2, ain3)
+                && adc->read_conversion(ADS1115::Multiplexer::Single_AIN3, ain4);
 
-                    if (mcp23017)
-                    {
-                        ByteSet b(0);
-                        b.set(5, temp <= 25);
-                        b.set(6, temp <= 26);
-                        b.set(7, temp <= 27);
-
-                        mcp23017->set_output(MCP23017::Port::A, b);
-                    }
-                }
+                ESP_LOGV("Data", "%d: %x %x %x %x", res, ain1, ain2, ain3, ain4);
             }
+
+            Task::delay(milliseconds(1000));
+
         }
 
-        void event(const smooth::core::io::InterruptInputEvent& event) override
-        {
-            uint8_t value;
-            if (event.get_io() == int_a.get_io())
-            {
-                mcp23017->read_interrupt_capture(MCP23017::Port::A, value);
-                ESP_LOGV("Int", "A %x", value);
-            }
-            else if (event.get_io() == int_b.get_io())
-            {
-                mcp23017->read_interrupt_capture(MCP23017::Port::B, value);
-                ESP_LOGV("Int", "B %x", value);
-            }
-        }
 
     private:
-        smooth::core::ipc::TaskEventQueue<MQTTData> mqtt_data;
-        smooth::core::ipc::ISRTaskEventQueue<smooth::core::io::InterruptInputEvent, 10> io_int_event;
-        smooth::application::network::mqtt::MqttClient mqtt;
         smooth::core::io::i2c::Master i2c;
-        smooth::core::io::i2c::Master i2c_2;
-        std::unique_ptr<BME280> bme280{};
-        std::unique_ptr<MCP23017> mcp23017;
-        std::stringstream ss{};
-        io::InterruptInput int_a;
-        io::InterruptInput int_b;
+        std::unique_ptr<smooth::application::io::ADS1115> adc;
+
 };
 
 extern "C" void app_main()
@@ -184,38 +109,14 @@ extern "C" void app_main()
 */
     // Create the application, it will run on the main task
     // so set an appropriate stack size in the config.
-    /*MyApp app;
+    MyApp app;
 
-    Wifi& wifi = app.get_wifi();
+    /*Wifi& wifi = app.get_wifi();
     wifi.set_host_name("HAP-ESP32");
     wifi.set_ap_credentials(WIFI_SSID, WIFI_PASSWORD);
     wifi.set_auto_connect(true);
     app.set_system_log_level(ESP_LOG_ERROR);
-
+*/
     // Start the application. Note that this function never returns.
-    app.start();*/
-
-    const int led_count = 3;
-    application::rgb_led::RGBLed rgb(RMT_CHANNEL_0, GPIO_NUM_21, led_count, application::rgb_led::WS2812B());
-
-    int toggle = 0;
-
-    for (;;)
-    {
-        rgb.set_pixel(0, toggle == 0 ? 0x22 : 0, toggle == 1 ? 0x22 : 0, toggle == 2 ? 0x22 : 0);
-        rgb.set_pixel(1, toggle == 1 ? 0x22 : 0, toggle == 2 ? 0x22 : 0, toggle == 0 ? 0x22 : 0);
-        rgb.set_pixel(2, toggle == 2 ? 0x22 : 0, toggle == 0 ? 0x22 : 0, toggle == 1 ? 0x22 : 0);
-        rgb.apply();
-
-        toggle += 1;
-        if (toggle > 2)
-        {
-            toggle = 0;
-        }
-
-        Task::delay(milliseconds(500));
-
-
-    }
-
+    app.start();
 }
