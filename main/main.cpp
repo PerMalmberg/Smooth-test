@@ -42,7 +42,7 @@ class MyApp
 {
     public:
 
-        MyApp() : Application(tskIDLE_PRIORITY + 1, std::chrono::milliseconds(1000)),
+        MyApp() : Application(tskIDLE_PRIORITY + 1, std::chrono::milliseconds(0)),
                   i2c(I2C_NUM_0, GPIO_NUM_19, true, GPIO_NUM_22, true, 100000),
                   adc()
         {
@@ -65,6 +65,24 @@ class MyApp
 
             ESP_LOGV("ACD", "Configured: %d", res);
 
+            mcp23017 = i2c.create_device<MCP23017>(0x20);
+            if (mcp23017)
+            {
+                bool present = mcp23017->is_present();
+                bool known = mcp23017->put_device_into_known_state(false);
+                ESP_LOGV("MCP23017 detected", "%d", present);
+                ESP_LOGV("MCP23017 state set", "%d", known);
+                if (present && known)
+                {
+                    mcp23017->configure_device(false, true, 0xFF, 0x00, 0x00, 0xFF, 0x00, 0x00);
+                    mcp23017->configure_ports(0x1F, 0xFF, 0x00, 0xFF, 0xFF, 0x00);
+                }
+                else
+                {
+                    mcp23017.reset();
+                }
+            }
+
 
         }
 
@@ -74,16 +92,24 @@ class MyApp
 
             if (adc)
             {
-                uint16_t ain1, ain2, ain3, ain4;
-                bool res = adc->read_conversion(ADS1115::Multiplexer::Single_AIN0, ain1)
-                && adc->read_conversion(ADS1115::Multiplexer::Single_AIN1, ain2)
-                && adc->read_conversion(ADS1115::Multiplexer::Single_AIN2, ain3)
-                && adc->read_conversion(ADS1115::Multiplexer::Single_AIN3, ain4);
+                uint16_t ain1 = 0, ain2 = 0, ain3 = 0, ain4 = 0;
+                bool res = adc->read_conversion(ADS1115::Multiplexer::Single_AIN0, ain1);
+//                           && adc->read_conversion(ADS1115::Multiplexer::Single_AIN1, ain2)
+//                           && adc->read_conversion(ADS1115::Multiplexer::Single_AIN2, ain3)
+//                           && adc->read_conversion(ADS1115::Multiplexer::Single_AIN3, ain4);
 
                 ESP_LOGV("Data", "%d: %x %x %x %x", res, ain1, ain2, ain3, ain4);
+
+                ByteSet b(0);
+                b.set(7, ain1 > 0x3000);
+                b.set(6, ain1 > 0x2000);
+                b.set(5, ain1 > 0x1000);
+
+                mcp23017->set_output(MCP23017::Port::A, b);
+
             }
 
-            Task::delay(milliseconds(1000));
+            Task::delay(milliseconds(10));
 
         }
 
@@ -91,6 +117,7 @@ class MyApp
     private:
         smooth::core::io::i2c::Master i2c;
         std::unique_ptr<smooth::application::io::ADS1115> adc;
+        std::unique_ptr<MCP23017> mcp23017;
 
 };
 
