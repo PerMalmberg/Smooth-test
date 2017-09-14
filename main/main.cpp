@@ -92,13 +92,21 @@ class MyApp
 
             if (adc)
             {
-                uint16_t ain1 = 0, ain2 = 0, ain3 = 0, ain4 = 0;
-                bool res = adc->read_conversion(ADS1115::Multiplexer::Single_AIN0, ain1);
-//                           && adc->read_conversion(ADS1115::Multiplexer::Single_AIN1, ain2)
-//                           && adc->read_conversion(ADS1115::Multiplexer::Single_AIN2, ain3)
-//                           && adc->read_conversion(ADS1115::Multiplexer::Single_AIN3, ain4);
+                uint16_t ain0 = 0, ain1 = 0, ain2 = 0, ain3 = 0;
+                bool res = adc->set_mux(ADS1115::Multiplexer::Single_AIN0);
+                res = res && adc->read_conversion(ain0);
 
-                ESP_LOGV("Data", "%d: %x %x %x %x", res, ain1, ain2, ain3, ain4);
+                res = adc->set_mux(ADS1115::Multiplexer::Single_AIN1);
+                res = res && adc->read_conversion(ain1);
+
+                res = adc->set_mux(ADS1115::Multiplexer::Single_AIN2);
+                res = res && adc->read_conversion(ain2);
+
+                res = adc->set_mux(ADS1115::Multiplexer::Single_AIN3);
+                res = res && adc->read_conversion(ain3);
+
+
+                ESP_LOGV("Data", "%d: %x %x %x %x", res, ain0, ain1, ain2, ain3);
 
                 ByteSet b(0);
                 b.set(7, ain1 > 0x3000);
