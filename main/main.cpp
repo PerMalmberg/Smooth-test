@@ -38,13 +38,16 @@ using namespace std::chrono;
 static const std::string mqtt_broker = "192.168.10.44";
 
 class MyApp
-        : public Application
+        : public Application,
+          public core::ipc::IEventListener<core::io::InterruptInputEvent>
 {
     public:
 
         MyApp() : Application(tskIDLE_PRIORITY + 1, std::chrono::milliseconds(0)),
                   i2c(I2C_NUM_0, GPIO_NUM_19, true, GPIO_NUM_22, true, 100000),
-                  adc()
+                  adc(),
+                  adc_complete_queue(*this, *this),
+                  adc_complete(adc_complete_queue, GPIO_NUM_26, true, false)
         {
         }
 
@@ -60,8 +63,10 @@ class MyApp
                     ADS1115::DataRate::SPS_16,
                     ADS1115::ComparatorMode::Traditional,
                     ADS1115::Alert_Ready_Polarity::ActiveLow,
-                    ADS1115::LatchingComparator::NonLatching,
-                    ADS1115::AssertStrategy::AssertAfterFourConversion);
+                    ADS1115::LatchingComparator::Latching,
+                    ADS1115::AssertStrategy::AssertAfterFourConversion,
+                    0x0000,
+                    0x8000);
 
             ESP_LOGV("ACD", "Configured: %d", res);
 
@@ -89,35 +94,47 @@ class MyApp
 
         void tick() override
         {
+//            if (adc)
+//            {
+//                uint16_t ain0 = 0, ain1 = 0, ain2 = 0, ain3 = 0;
+//                bool res = adc->set_mux(ADS1115::Multiplexer::Single_AIN0);
+//                res = res && adc->read_conversion(ain0);
+//
+//                res = adc->set_mux(ADS1115::Multiplexer::Single_AIN1);
+//                res = res && adc->read_conversion(ain1);
+//
+//                res = adc->set_mux(ADS1115::Multiplexer::Single_AIN2);
+//                res = res && adc->read_conversion(ain2);
+//
+//                res = adc->set_mux(ADS1115::Multiplexer::Single_AIN3);
+//                res = res && adc->read_conversion(ain3);
+//
+//
+//                ESP_LOGV("Data", "%d: %x %x %x %x", res, ain0, ain1, ain2, ain3);
+//
+//                ByteSet b(0);
+//                b.set(7, ain1 > 0x3000);
+//                b.set(6, ain1 > 0x2000);
+//                b.set(5, ain1 > 0x1000);
+//
+//                mcp23017->set_output(MCP23017::Port::A, b);
+//
+//            }
+
+            Task::delay(milliseconds(1000));
+        }
+
+        void event(const core::io::InterruptInputEvent& event)
+        {
+            ESP_LOGV("Intr", "%d - %d", event.get_io(), event.get_state());
 
             if (adc)
             {
-                uint16_t ain0 = 0, ain1 = 0, ain2 = 0, ain3 = 0;
-                bool res = adc->set_mux(ADS1115::Multiplexer::Single_AIN0);
-                res = res && adc->read_conversion(ain0);
+                uint16_t ain0 = 0;
+                bool res = adc->read_conversion(ain0);
 
-                res = adc->set_mux(ADS1115::Multiplexer::Single_AIN1);
-                res = res && adc->read_conversion(ain1);
-
-                res = adc->set_mux(ADS1115::Multiplexer::Single_AIN2);
-                res = res && adc->read_conversion(ain2);
-
-                res = adc->set_mux(ADS1115::Multiplexer::Single_AIN3);
-                res = res && adc->read_conversion(ain3);
-
-
-                ESP_LOGV("Data", "%d: %x %x %x %x", res, ain0, ain1, ain2, ain3);
-
-                ByteSet b(0);
-                b.set(7, ain1 > 0x3000);
-                b.set(6, ain1 > 0x2000);
-                b.set(5, ain1 > 0x1000);
-
-                mcp23017->set_output(MCP23017::Port::A, b);
-
+                ESP_LOGV("Data", "%d: %x", res, ain0);
             }
-
-            Task::delay(milliseconds(10));
 
         }
 
@@ -126,6 +143,8 @@ class MyApp
         smooth::core::io::i2c::Master i2c;
         std::unique_ptr<smooth::application::io::ADS1115> adc;
         std::unique_ptr<MCP23017> mcp23017;
+        core::ipc::ISRTaskEventQueue<core::io::InterruptInputEvent, 10> adc_complete_queue;
+        core::io::InterruptInput adc_complete;
 
 };
 
