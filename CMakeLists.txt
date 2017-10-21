@@ -17,9 +17,15 @@ macro(INCLUDE_COMPONENT_HEADERS startDir)
     endforeach ()
 endmacro()
 
+add_definitions(-DTEST_QUEUE)
+
+include_directories(main
+        components)
 
 set(SOURCE_FILES
         main/main.cpp
+        main/test/test_queue.h
+        main/test/test_queue.cpp
         )
 
 add_executable(esp32_test ${SOURCE_FILES})
