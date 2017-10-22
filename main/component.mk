@@ -1,7 +1,8 @@
 # Add the include directory to include paths so that files can be included using <smooth/file.h>
 
-#CPPFLAGS := -DTEST_QUEUE
-CPPFLAGS := -DTEST_TIMER
+### Select a single test application to build
+#CPPFLAGS += -DTEST_QUEUE
+CPPFLAGS += -DTEST_TIMER
 
 COMPONENT_ADD_INCLUDEDIRS := .
 

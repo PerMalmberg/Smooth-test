@@ -33,8 +33,8 @@ class TestApp
             std::chrono::milliseconds total = std::chrono::milliseconds(0);
         };
 
-        std::vector<TimerInfo> timers;
         smooth::core::ipc::TaskEventQueue<smooth::core::timer::TimerExpiredEvent> queue;
+        std::vector<TimerInfo> timers;
 
 };
 

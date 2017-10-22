@@ -13,6 +13,7 @@ extern "C" void app_main()
     // Start the application. Note that this function never returns.
     app.start();
 }
+
 #else // END ESP_PLATFORM
 
 int main()
