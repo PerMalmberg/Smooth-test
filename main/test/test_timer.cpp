@@ -24,6 +24,8 @@ void TestApp::init()
     create_timer(milliseconds(1000));
     create_timer(milliseconds(3000));
     create_timer(milliseconds(5000));
+    create_timer(milliseconds(10000));
+
     for (auto& t:timers)
     {
         t.timer->start();
@@ -33,8 +35,8 @@ void TestApp::init()
 void TestApp::event(const smooth::core::timer::TimerExpiredEvent& event)
 {
     auto& info = timers[event.get_timer()->get_id()];
-    milliseconds duration = duration_cast<milliseconds>(high_resolution_clock::now() - info.last);
-    info.last = high_resolution_clock::now();
+    milliseconds duration = duration_cast<milliseconds>(steady_clock::now() - info.last);
+    info.last = steady_clock::now();
     info.count++;
     info.total += duration;
 

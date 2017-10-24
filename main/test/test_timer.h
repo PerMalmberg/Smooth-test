@@ -28,7 +28,7 @@ class TestApp
         {
             std::shared_ptr<smooth::core::timer::Timer> timer;
             std::chrono::milliseconds interval;
-            std::chrono::high_resolution_clock::time_point last = std::chrono::high_resolution_clock::now();
+            std::chrono::steady_clock::time_point last = std::chrono::steady_clock::now();
             uint64_t count = 0;
             std::chrono::milliseconds total = std::chrono::milliseconds(0);
         };
