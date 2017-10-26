@@ -35,6 +35,7 @@ class TestApp
 
         smooth::core::ipc::TaskEventQueue<smooth::core::timer::TimerExpiredEvent> queue;
         std::vector<TimerInfo> timers;
+        bool toggle = false;
 
 };
 

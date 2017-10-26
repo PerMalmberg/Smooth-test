@@ -1,7 +1,6 @@
 #ifdef TEST_TIMER
 
 #include "test_timer.h"
-#include <smooth/core/logging/log.h>
 
 using namespace smooth;
 using namespace smooth::core;

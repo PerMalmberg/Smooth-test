@@ -10,7 +10,7 @@ using namespace smooth::core::logging;
 using namespace std::chrono;
 
 TestApp::TestApp()
-        : Application(tskIDLE_PRIORITY + 1, std::chrono::milliseconds(1000)),
+        : Application(5, std::chrono::milliseconds(1000)),
           queue("string queue", 10, *this, *this),
           sender(queue)
 {
@@ -28,7 +28,7 @@ void TestApp::event(const timer::ElapsedTime& event)
     total += val;
     count++;
 
-    if (count % 1000 == 0)
+    if (count % 100 == 0)
     {
         Log::debug("Stats", Format("Avg: {1}us per message, Count: {2}, Last msg: {3}us",
                                    Double(total.count() / count, 2),
@@ -38,7 +38,7 @@ void TestApp::event(const timer::ElapsedTime& event)
 }
 
 SenderTask::SenderTask(TaskEventQueue<timer::ElapsedTime>& out) :
-        core::Task("SenderTask", 4096, 10, milliseconds(100)),
+        core::Task("SenderTask", 4096, 10, milliseconds(1)),
         out(out)
 {
 }

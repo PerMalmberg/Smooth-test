@@ -2,7 +2,8 @@
 
 ### Select a single test application to build
 #CPPFLAGS += -DTEST_QUEUE
-CPPFLAGS += -DTEST_TIMER
+#CPPFLAGS += -DTEST_TIMER
+CPPFLAGS += -DTEST_NETWORK
 
 COMPONENT_ADD_INCLUDEDIRS := .
 

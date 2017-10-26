@@ -8,7 +8,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
 set(IDF_PATH /home/permal/esp/esp-idf)
 
 #add_definitions(-DTEST_QUEUE)
-add_definitions(-DTEST_TIMER)
+#add_definitions(-DTEST_TIMER)
+add_definitions(-DTEST_NETWORK)
 
 
 include_directories(main
@@ -19,7 +20,9 @@ set(SOURCE_FILES
         main/test/test_queue.h
         main/test/test_queue.cpp
         main/test/test_timer.h
-        main/test/test_timer.cpp)
+        main/test/test_timer.cpp
+        main/test/test_network.h
+        main/test/test_network.cpp)
 
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 add_subdirectory(components/Smooth)
