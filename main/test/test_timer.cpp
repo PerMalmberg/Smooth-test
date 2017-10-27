@@ -29,18 +29,21 @@ void TestApp::init()
     {
         t.timer->start();
     }
+
+    timers.front().timer->stop();
+    timers.front().timer->start();
 }
 
 void TestApp::event(const smooth::core::timer::TimerExpiredEvent& event)
 {
-    auto& info = timers[event.get_timer()->get_id()];
+    auto& info = timers[event.get_id()];
     milliseconds duration = duration_cast<milliseconds>(steady_clock::now() - info.last);
     info.last = steady_clock::now();
     info.count++;
     info.total += duration;
 
     Log::verbose("Interval", Format("{1} ({2}ms): {3}ms, avg: {4}",
-                                    Int32(event.get_timer()->get_id()),
+                                    Int32(event.get_id()),
                                     Int64(info.interval.count()),
                                     Int64(duration.count()),
                                     Double(info.total.count() * 1.0 / info.count)));
