@@ -19,6 +19,8 @@ class TestApp
         void init() override;
         void event(const smooth::application::network::mqtt::MQTTData& event) override;
 
+        void tick() override;
+
     private:
         smooth::core::ipc::TaskEventQueue<smooth::application::network::mqtt::MQTTData> mqtt_data;
         smooth::application::network::mqtt::MqttClient client;
