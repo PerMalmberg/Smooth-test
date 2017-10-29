@@ -1,6 +1,7 @@
 #ifdef TEST_NETWORK
 
 #include "test_network.h"
+#include <smooth/core/task_priorities.h>
 
 #ifdef ESP_PLATFORM
 #include <smooth/core/network/Wifi.h>
@@ -13,7 +14,7 @@ using namespace smooth::core::logging;
 using namespace std::chrono;
 using namespace smooth::application::network::mqtt;
 
-const std::string broker = "192.168.10.44";
+const char* broker = "192.168.10.44";
 #ifdef ESP_PLATFORM
 const char* client_id = "ESP32";
 #else
@@ -21,7 +22,7 @@ const char* client_id = "Linux";
 #endif
 
 TestApp::TestApp()
-        : Application(10, seconds(10)),
+        : Application(APPLICATION_BASE_PRIO, seconds(10)),
           mqtt_data("mqtt_data", 10, *this, *this),
           client(client_id, seconds(10), 8192, 10, mqtt_data)
 {

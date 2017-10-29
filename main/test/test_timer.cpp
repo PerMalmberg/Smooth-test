@@ -1,6 +1,7 @@
 #ifdef TEST_TIMER
 
 #include "test_timer.h"
+#include <smooth/core/task_priorities.h>
 
 using namespace smooth;
 using namespace smooth::core;
@@ -10,7 +11,8 @@ using namespace smooth::core::logging;
 using namespace std::chrono;
 
 TestApp::TestApp()
-        : Application(10, seconds(10)),
+        : Application(APPLICATION_BASE_PRIO,
+          seconds(10)),
           queue("queue", 10, *this, *this),
           timers()
 {

@@ -2,6 +2,7 @@
 
 #include "test_queue.h"
 #include <smooth/core/logging/log.h>
+#include <smooth/core/task_priorities.h>
 
 using namespace smooth;
 using namespace smooth::core;
@@ -10,7 +11,8 @@ using namespace smooth::core::logging;
 using namespace std::chrono;
 
 TestApp::TestApp()
-        : Application(5, std::chrono::milliseconds(1000)),
+        : Application(APPLICATION_BASE_PRIO,
+          std::chrono::milliseconds(1000)),
           queue("string queue", 10, *this, *this),
           sender(queue)
 {
