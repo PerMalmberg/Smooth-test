@@ -14,7 +14,7 @@ using namespace smooth::core::logging;
 using namespace std::chrono;
 using namespace smooth::application::network::mqtt;
 
-const char* broker = "192.168.10.44";
+const char* broker = "192.168.10.245";
 #ifdef ESP_PLATFORM
 const char* client_id = "ESP32";
 #else
