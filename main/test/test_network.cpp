@@ -52,13 +52,26 @@ void TestApp::init()
 void TestApp::event(const smooth::application::network::mqtt::MQTTData& event)
 {
     Log::info("Rec", Format("T:{1}, M:{2}", Str(event.first), Array(event.second, true)));
+
+    static uint32_t len = 0;
     if(event.first.find("ESP32") != std::string::npos)
     {
-        client.publish("To:Linux", "Message to Linux", QoS::EXACTLY_ONCE, false);
+        std::string s = "Message to Linux";
+        std::string rep(len, 'Q');
+        s.append(rep);
+        client.publish("To:Linux", s, QoS::EXACTLY_ONCE, false);
     }
     else if(event.first.find("Linux") != std::string::npos)
     {
+        std::string s = "Message to ESP32";
+        std::string rep(len, 'Q');
+        s.append(rep);
         client.publish("To:ESP32", "Message to ESP32", QoS::EXACTLY_ONCE, false);
+    }
+
+    if(++len == 100)
+    {
+        len = 1;
     }
 }
 
