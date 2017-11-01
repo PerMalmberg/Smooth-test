@@ -66,7 +66,7 @@ void TestApp::event(const smooth::application::network::mqtt::MQTTData& event)
         std::string s = "Message to ESP32";
         std::string rep(len, 'Q');
         s.append(rep);
-        client.publish("To:ESP32", "Message to ESP32", QoS::EXACTLY_ONCE, false);
+        client.publish("To:ESP32", s, QoS::EXACTLY_ONCE, false);
     }
 
     if(++len == 100)
