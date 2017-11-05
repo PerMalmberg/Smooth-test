@@ -69,7 +69,7 @@ void TestApp::event(const smooth::application::network::mqtt::MQTTData& event)
         client.publish("To:ESP32", s, QoS::EXACTLY_ONCE, false);
     }
 
-    if(++len == 100)
+    if(++len == 300)
     {
         len = 1;
     }
