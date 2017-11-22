@@ -24,7 +24,8 @@ const char* client_id = "Linux";
 TestApp::TestApp()
         : Application(APPLICATION_BASE_PRIO, seconds(10)),
           mqtt_data("mqtt_data", 10, *this, *this),
-          client(client_id, seconds(10), 8192, 10, mqtt_data)
+          client(client_id, seconds(10), 8192, 10, mqtt_data),
+          led(GPIO_NUM_5, true, false, true, true)
 {
 }
 
@@ -43,6 +44,7 @@ void TestApp::init()
 #ifdef ESP_PLATFORM
     client.subscribe("To:ESP32", QoS::EXACTLY_ONCE);
     client.publish("To:Linux", "Message to Linux", QoS::EXACTLY_ONCE, false);
+    client.subscribe("$SYS/broker/uptime", QoS::AT_LEAST_ONCE);
 #else
     client.subscribe("To:Linux", QoS::EXACTLY_ONCE);
     client.publish("To:ESP32", "Message to ESP32", QoS::EXACTLY_ONCE, false);
@@ -72,6 +74,15 @@ void TestApp::event(const smooth::application::network::mqtt::MQTTData& event)
     if(++len == 300)
     {
         len = 1;
+    }
+
+    if(len&1)
+    {
+        led.set();
+    }
+    else
+    {
+        led.clr();
     }
 }
 
