@@ -1,47 +1,38 @@
 cmake_minimum_required(VERSION 3.6)
-project(SmothT1est)
+project(SmoothTest)
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 11)
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
 
 set(IDF_PATH /home/permal/esp/esp-idf)
 
-#[[ This macro adds an include path to header files found in each component directory,
-    i.e. <project directory>/components/<component name>/include
-]]
-macro(INCLUDE_COMPONENT_HEADERS startDir)
-    file(GLOB sub ${startDir} ${startDir}/*)
-    foreach (item ${sub})
-        if (IS_DIRECTORY ${item})
-            include_directories(${item}/include)
-        endif ()
-    endforeach ()
-endmacro()
+#add_definitions(-DTEST_QUEUE)
+#add_definitions(-DTEST_TIMER)
+add_definitions(-DTEST_NETWORK)
+#add_definitions(-DTEST_RGB_LED -DESP_PLATFORM)
 
+
+include_directories(main
+                    components/Smooth/include)
 
 set(SOURCE_FILES
         main/main.cpp
-        )
+        main/test/test_queue.h
+        main/test/test_queue.cpp
+        main/test/test_timer.h
+        main/test/test_timer.cpp
+        main/test/test_network.h
+        main/test/test_network.cpp
+        main/test/test_rgb_led.h)
 
-add_executable(esp32_test ${SOURCE_FILES})
+add_executable(${PROJECT_NAME} ${SOURCE_FILES})
+add_subdirectory(components/Smooth)
 
-set(COMPONENTS
-        freertos
-        cxx
-        esp32
-        driver
-        log
-        tcpip_adapter
-        lwip
-        openssl
-        soc/esp32
-        )
+target_link_libraries(${PROJECT_NAME} Smooth)
 
-set(COMPONENT_INCLUDE_DIRS "")
-
-foreach (COMP ${COMPONENTS})
-    list(APPEND COMPONENT_INCLUDE_DIRS ${IDF_PATH}/components/${COMP}/include)
-endforeach ()
-
-include_directories(${COMPONENT_INCLUDE_DIRS})
-INCLUDE_COMPONENT_HEADERS(${CMAKE_CURRENT_LIST_DIR}/components)
-
+set_target_properties(${PROJECT_NAME}
+        PROPERTIES
+        ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/out/artifacts
+        LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/out/artifacts
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/out/artifacts)

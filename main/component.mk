@@ -1,5 +1,13 @@
-#
-# "main" pseudo-component makefile.
-#
-# (Uses default behaviour of compiling all source files in directory, adding 'include' to include path.)
+# Add the include directory to include paths so that files can be included using <smooth/file.h>
 
+### Select a single test application to build
+#CPPFLAGS += -DTEST_QUEUE
+#CPPFLAGS += -DTEST_TIMER
+#CPPFLAGS += -DTEST_NETWORK
+CPPFLAGS += -DTEST_RGB_LED
+
+COMPONENT_ADD_INCLUDEDIRS := .
+
+COMPONENT_SRCDIRS := \
+    . \
+	./test
