@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.6)
 project(SmoothTest)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
 
@@ -9,8 +9,9 @@ set(IDF_PATH /home/permal/esp/esp-idf)
 
 #add_definitions(-DTEST_QUEUE)
 #add_definitions(-DTEST_TIMER)
-add_definitions(-DTEST_NETWORK)
+#add_definitions(-DTEST_NETWORK)
 #add_definitions(-DTEST_RGB_LED -DESP_PLATFORM)
+add_definitions(-DTEST_JSON)
 
 
 include_directories(main
@@ -24,7 +25,9 @@ set(SOURCE_FILES
         main/test/test_timer.cpp
         main/test/test_network.h
         main/test/test_network.cpp
-        main/test/test_rgb_led.h)
+        main/test/test_rgb_led.h
+        main/test/test_json.h
+        main/test/test_json.cpp)
 
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 add_subdirectory(components/Smooth)

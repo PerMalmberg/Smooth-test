@@ -4,6 +4,7 @@
 #include <test/test_timer.h>
 #include <test/test_network.h>
 #include <test/test_rgb_led.h>
+#include <test/test_json.h>
 
 #ifdef ESP_PLATFORM
 extern "C" void app_main()
