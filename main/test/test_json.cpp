@@ -35,12 +35,53 @@ void TestApp::tick()
         assert(root["key_with_string"] == "value");
         root["key_with_string"] = "new_value";
         assert(root["key_with_string"] == "new_value");
+        assert(root["key_with_int"] == 1);
+        root["key_with_int"] = 5;
+        assert(root["key_with_int"] == 5);
+        int i = static_cast<int>(root["key_with_int"]);
+        assert(i == 5);
+
+        assert(root["key_with_object"]["key_in_object_with_string"] == "the string");
+
+        auto copy = root["key_with_object"]["key_in_object_with_string"];
+        assert(copy == "the string");
+
+        root["key_with_object"]["key_in_object_with_string"] = "another string";
+        assert(root["key_with_object"]["key_in_object_with_string"] == "another string");
+
+        std::string str = static_cast<std::string>(root["key_with_object"]["key_in_object_with_string"]);
+        assert(str == "another string");
+
+        assert(root["key_with_object"]["key_in_object_with_double"] == 1.2345);
+        root["key_with_object"]["key_in_object_with_double"] = 6.789;
+        double d = static_cast<double>(root["key_with_object"]["key_in_object_with_double"]);
+        assert(d == 6.789);
+
+        Value v{"{ \"key_to_be_copied\": 12345 }"};
+        root["key_with_empty_object"] = v;
+        assert(root["key_with_empty_object"]["key_to_be_copied"] == 12345);
+
+        // Non existing key -> new item of object type so not equal to any string or number.
+        // Accessing a non existing key creates it.
+        assert(root["non_existing_key"] != "");
+        assert(root["non_existing_key"] != 0);
+        assert(root["non_existing_key"] != 0.0);
+
+        // We can complete change the type of the held object
+        root["non_existing_key"] = "asdf";
+        assert(root["non_existing_key"] == "asdf");
+        root["non_existing_key"] = 456;
+        assert(root["non_existing_key"] == 456);
+        root["non_existing_key"] = 8.9;
+        assert(root["non_existing_key"] == 8.9);
+
+        root["nested1"]["nested2"]["nested3"] = "I'm six feet under";
+        assert(root["nested1"]["nested2"]["nested3"] == "I'm six feet under");
 
         Log::info("Data", Format("{1}", Str(cJSON_Print(json))));
 
         cJSON_Delete(json);
     }
-
 }
 
 std::unique_ptr<char[]> TestApp::read_file(const std::string& path)
