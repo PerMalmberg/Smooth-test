@@ -2,7 +2,7 @@
 
 #include "test_json.h"
 #include <smooth/core/task_priorities.h>
-#include <smooth/core/json/Json.h>
+#include <smooth/core/json/Value.h>
 #include <fstream>
 #include <assert.h>
 
@@ -67,7 +67,11 @@ void TestApp::tick()
         assert(root["non_existing_key"] != 0);
         assert(root["non_existing_key"] != 0.0);
 
-        // We can complete change the type of the held object
+        assert(root["key_with_true"].get_bool(false));
+        assert(!root["key_with_false"].get_bool(true));
+
+
+        // We can completely change the type of the held object
         root["non_existing_key"] = "asdf";
         assert(root["non_existing_key"] == "asdf");
         root["non_existing_key"] = 456;

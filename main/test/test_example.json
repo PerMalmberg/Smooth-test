@@ -5,5 +5,7 @@
     "key_in_object_with_string": "the string",
     "key_in_object_with_double": 1.2345
   },
-  "key_with_empty_object": {}
+  "key_with_empty_object": {},
+  "key_with_true" : true,
+  "key_with_false": false
 }
