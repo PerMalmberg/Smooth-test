@@ -61,5 +61,18 @@
       "value": true,
       "value2": false
     }
-  ]
+  ],
+  "zones": {
+    "night": [
+      "a0",
+      "a1"
+    ],
+    "all": [
+      "a0",
+      "a1",
+      "a2",
+      "a3",
+      "a4"
+    ]
+  }
 }
