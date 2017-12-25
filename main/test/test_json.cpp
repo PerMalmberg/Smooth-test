@@ -4,7 +4,7 @@
 #include <smooth/core/task_priorities.h>
 #include <smooth/core/json/Value.h>
 #include <fstream>
-#include <assert.h>
+#include <cassert>
 
 using namespace smooth;
 
@@ -128,6 +128,10 @@ void TestApp::tick()
 
         cJSON_Delete(json);
     }
+
+    Value v{};
+    v["foo"] = 123;
+    assert(v["foo"] == 123);
 }
 
 std::unique_ptr<char[]> TestApp::read_file(const std::string& path)
