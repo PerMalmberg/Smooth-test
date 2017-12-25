@@ -57,6 +57,30 @@ void TestApp::tick()
         double d = static_cast<double>(root["key_with_object"]["key_in_object_with_double"]);
         assert(d == 6.789);
 
+        assert(root["io"]["reference_values"]["digital"]["i0"]["ref"].get_bool(false));
+        assert(!root["io"]["reference_values"]["digital"]["i1"]["ref"].get_bool(true));
+
+        assert(root["array"].get_array_size() == 6);
+        assert(root["array"][2] == "a2");
+        assert(root["array"][5]["value"].get_bool(false));
+        assert(!root["array"][5]["value2"].get_bool(true));
+
+        root["array"][0] = "asdf";
+        assert(root["array"][0] == "asdf");
+
+        root["array"][1] = 1;
+        assert(root["array"][1] == 1);
+
+        root["array"][2] = 3.14;
+        assert(root["array"][2] == 3.14);
+
+        // Accessing non existing index - returns the current parent item
+        assert(root["array"][100].get_array_size() == 6);
+
+        // Change object value in array
+        root["array"][5]["value2"].set(true);
+        assert(root["array"][5]["value2"].get_bool(false));
+
         Value v{"{ \"key_to_be_copied\": 12345 }"};
         root["key_with_empty_object"] = v;
         assert(root["key_with_empty_object"]["key_to_be_copied"] == 12345);
@@ -82,7 +106,9 @@ void TestApp::tick()
         root["nested1"]["nested2"]["nested3"] = "I'm six feet under";
         assert(root["nested1"]["nested2"]["nested3"] == "I'm six feet under");
 
-        Log::info("Data", Format("{1}", Str(cJSON_Print(json))));
+        auto print = cJSON_Print(json);
+        Log::info("Data", Format("{1}", Str(print)));
+        free(print);
 
         cJSON_Delete(json);
     }
