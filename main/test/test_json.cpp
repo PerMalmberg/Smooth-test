@@ -42,6 +42,14 @@ void TestApp::tick()
         assert(i == 5);
 
         assert(root["key_with_object"]["key_in_object_with_string"] == "the string");
+        std::vector<std::string> names{};
+        root.get_member_names(names);
+        assert(names.size() == 8);
+        assert(std::find(names.begin(), names.end(), "io") != names.end());
+        assert(std::find(names.begin(), names.end(), "io") != names.end());
+        assert(std::find(names.begin(), names.end(), "key_with_false") != names.end());
+
+        assert(root["key_with_object"]["key_in_object_with_string"].get_name() == "key_in_object_with_string");
 
         auto copy = root["key_with_object"]["key_in_object_with_string"];
         assert(copy == "the string");
@@ -93,7 +101,6 @@ void TestApp::tick()
 
         assert(root["key_with_true"].get_bool(false));
         assert(!root["key_with_false"].get_bool(true));
-
 
         // We can completely change the type of the held object
         root["non_existing_key"] = "asdf";
