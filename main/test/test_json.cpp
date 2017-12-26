@@ -57,7 +57,7 @@ void TestApp::tick()
         root["key_with_object"]["key_in_object_with_string"] = "another string";
         assert(root["key_with_object"]["key_in_object_with_string"] == "another string");
 
-        std::string str = static_cast<std::string>(root["key_with_object"]["key_in_object_with_string"]);
+        std::string str = static_cast<const char*>(root["key_with_object"]["key_in_object_with_string"]);
         assert(str == "another string");
 
         assert(root["key_with_object"]["key_in_object_with_double"] == 1.2345);
@@ -82,12 +82,23 @@ void TestApp::tick()
         root["array"][2] = 3.14;
         assert(root["array"][2] == 3.14);
 
-        // Accessing non existing index - returns the current parent item
-        assert(root["array"][100].get_array_size() == 6);
+        // Accessing non existing index adds items to the array
+        root["array"][6] = "sixth index";
+        assert(root["array"][6] == "sixth index");
+
+        root["array"][9] = "ninth index";
+        assert(root["array"][9] == "ninth index");
+
+        root["array"][8] = 8;
+        assert(root["array"][8] == 8);
+
+        root["array"][7] = "seventh index";
+        assert(root["array"][7] == "seventh index");
 
         // Change object value in array
         root["array"][5]["value2"].set(true);
         assert(root["array"][5]["value2"].get_bool(false));
+
 
         Value v{"{ \"key_to_be_copied\": 12345 }"};
         root["key_with_empty_object"] = v;
