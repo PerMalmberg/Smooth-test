@@ -99,11 +99,6 @@ void TestApp::tick()
         root["array"][5]["value2"].set(true);
         assert(root["array"][5]["value2"].get_bool(false));
 
-
-        Value v{"{ \"key_to_be_copied\": 12345 }"};
-        root["key_with_empty_object"] = v;
-        assert(root["key_with_empty_object"]["key_to_be_copied"] == 12345);
-
         // Non existing key -> new item of object type so not equal to any string or number.
         // Accessing a non existing key creates it.
         assert(root["non_existing_key"] != "");
@@ -120,7 +115,6 @@ void TestApp::tick()
         assert(zones[*zone_names.begin()].get_array_size() == 2);
         assert(zones[*zone_names.rbegin()].get_array_size() == 5);
         assert(zones[*zone_names.begin()][0] == "a0");
-
 
         // We can completely change the type of the held object
         root["non_existing_key"] = "asdf";
@@ -140,9 +134,19 @@ void TestApp::tick()
         cJSON_Delete(json);
     }
 
-    Value v{};
-    v["foo"] = 123;
-    assert(v["foo"] == 123);
+    {
+        Value v{};
+        v["foo"] = 123;
+        assert(v["foo"] == 123);
+        v["array"][0] = 0;
+        v["array"][1] = 1;
+        v["array"][2] = 2;
+        assert(v["array"][0] == 0);
+        assert(v["array"][1] == 1);
+        assert(v["array"][2] == 2);
+
+        Log::info("Data", Format("{1}", Str(v.to_string())));
+    }
 }
 
 std::unique_ptr<char[]> TestApp::read_file(const std::string& path)
