@@ -150,6 +150,14 @@ void TestApp::tick()
 
         Log::info("Data", Format("{1}", Str(v.to_string())));
     }
+
+    {
+        Value v{};
+        v["bool"].set(false);
+        assert(!v["bool"].get_bool(true));
+        v["bool"].set(true);
+        assert(v["bool"].get_bool(false));
+    }
 }
 
 std::unique_ptr<char[]> TestApp::read_file(const std::string& path)
