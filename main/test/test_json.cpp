@@ -65,6 +65,9 @@ void TestApp::tick()
         double d = static_cast<double>(root["key_with_object"]["key_in_object_with_double"]);
         assert(d == 6.789);
 
+        assert(!root["key_with_object"]["key_in_object_with_false"].get_bool(true));
+        assert(root["key_with_object"]["key_in_object_with_true"].get_bool(false));
+
         assert(root["io"]["reference_values"]["digital"]["i0"]["ref"].get_bool(false));
         assert(!root["io"]["reference_values"]["digital"]["i1"]["ref"].get_bool(true));
 

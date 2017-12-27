@@ -3,7 +3,9 @@
   "key_with_int": 1,
   "key_with_object": {
     "key_in_object_with_string": "the string",
-    "key_in_object_with_double": 1.2345
+    "key_in_object_with_double": 1.2345,
+    "key_in_object_with_false": false,
+    "key_in_object_with_true": true
   },
   "key_with_empty_object": {},
   "key_with_true": true,
