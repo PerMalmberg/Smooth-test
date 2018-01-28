@@ -3,7 +3,7 @@ project(SmoothTest)
 
 set(CMAKE_CXX_STANDARD 14)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -fsanitize=address -fsanitize=bounds -fsanitize=leak -fsanitize=return -fsanitize=null")
 
 set(IDF_PATH /home/permal/esp/esp-idf)
 

@@ -6,7 +6,9 @@
 #include <smooth/core/ipc/IEventListener.h>
 #include <smooth/core/ipc/TaskEventQueue.h>
 #include <smooth/application/network/mqtt/MqttClient.h>
+#ifdef ESP_PLATFORM
 #include <smooth/core/io/Output.h>
+#endif
 
 
 class TestApp
@@ -25,7 +27,9 @@ class TestApp
     private:
         smooth::core::ipc::TaskEventQueue<smooth::application::network::mqtt::MQTTData> mqtt_data;
         smooth::application::network::mqtt::MqttClient client;
+#ifdef ESP_PLATFORM
         smooth::core::io::Output led;
+#endif
 
 };
 

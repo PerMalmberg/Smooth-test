@@ -24,8 +24,11 @@ const char* client_id = "Linux";
 TestApp::TestApp()
         : Application(APPLICATION_BASE_PRIO, seconds(10)),
           mqtt_data("mqtt_data", 10, *this, *this),
-          client(client_id, seconds(10), 8192, 10, mqtt_data),
-          led(GPIO_NUM_5, true, false, true, true)
+          client(client_id, seconds(10), 8192, 10, mqtt_data)
+#ifdef ESP_PLATFORM
+          ,led(GPIO_NUM_5, true, false, true, true)
+#endif
+
 {
 }
 
@@ -46,8 +49,8 @@ void TestApp::init()
     client.publish("To:Linux", "Message to Linux", QoS::EXACTLY_ONCE, false);
     client.subscribe("$SYS/broker/uptime", QoS::AT_LEAST_ONCE);
 #else
-    client.subscribe("To:Linux", QoS::EXACTLY_ONCE);
-    client.publish("To:ESP32", "Message to ESP32", QoS::EXACTLY_ONCE, false);
+    client.subscribe("network_test", QoS::EXACTLY_ONCE);
+    client.publish("network_test", "Message to myself", QoS::EXACTLY_ONCE, false);
 #endif
 }
 
@@ -56,26 +59,16 @@ void TestApp::event(const smooth::application::network::mqtt::MQTTData& event)
     Log::info("Rec", Format("T:{1}, M:{2}", Str(event.first), Array(event.second, true)));
 
     static uint32_t len = 0;
-    if(event.first.find("ESP32") != std::string::npos)
-    {
-        std::string s = "Message to Linux";
-        std::string rep(len, 'Q');
-        s.append(rep);
-        client.publish("To:Linux", s, QoS::EXACTLY_ONCE, false);
-    }
-    else if(event.first.find("Linux") != std::string::npos)
-    {
-        std::string s = "Message to ESP32";
-        std::string rep(len, 'Q');
-        s.append(rep);
-        client.publish("To:ESP32", s, QoS::EXACTLY_ONCE, false);
-    }
 
-    if(++len == 300)
+    std::string rep(len, 'Q');
+    client.publish("network_test", rep, QoS::EXACTLY_ONCE, false);
+
+    if(++len == 3000)
     {
         len = 1;
     }
 
+#ifdef ESP_PLATFORM
     if(len&1)
     {
         led.set();
@@ -84,15 +77,12 @@ void TestApp::event(const smooth::application::network::mqtt::MQTTData& event)
     {
         led.clr();
     }
+#endif
 }
 
 void TestApp::tick()
 {
-#ifdef ESP_PLATFORM
-    client.publish("To:Linux", "Message to Linux", QoS::EXACTLY_ONCE, false);
-#else
-    client.publish("To:ESP32", "Message to ESP32", QoS::EXACTLY_ONCE, false);
-#endif
+    client.publish("network_test", "Message", QoS::EXACTLY_ONCE, false);
 }
 
 

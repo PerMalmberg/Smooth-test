@@ -1,4 +1,4 @@
-# Add the include directory to include paths so that files can be included using <smooth/file.h>
+CPPFLAGS += -D_GLIBCXX_USE_C99
 
 ### Select a single test application to build
 #CPPFLAGS += -DTEST_QUEUE
