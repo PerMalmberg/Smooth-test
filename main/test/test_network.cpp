@@ -43,6 +43,8 @@ void TestApp::init()
     wifi.connect_to_ap();
 #endif
 
+
+
     client.connect_to(std::make_shared<network::IPv4>(broker, 1883), true);
 #ifdef ESP_PLATFORM
     client.subscribe("To:ESP32", QoS::EXACTLY_ONCE);
@@ -61,7 +63,19 @@ void TestApp::event(const smooth::application::network::mqtt::MQTTData& event)
     static uint32_t len = 0;
 
     std::string rep(len, 'Q');
-    client.publish("network_test", rep, QoS::EXACTLY_ONCE, false);
+    auto v = dis(gen);
+    if(v == 1)
+    {
+        client.publish("network_test", rep, QoS::EXACTLY_ONCE, false);
+    }
+    else if(v == 2)
+    {
+        client.publish("network_test", rep, QoS::AT_MOST_ONCE, false);
+    }
+    else
+    {
+        client.publish("network_test", rep, QoS::AT_LEAST_ONCE, false);
+    }
 
     if(++len == 3000)
     {

@@ -22,6 +22,8 @@ void TestApp::init()
 {
     Application::init();
 
+    create_timer(milliseconds( 100));
+    create_timer(milliseconds( 500));
     create_timer(milliseconds(1000));
     create_timer(milliseconds(3000));
     create_timer(milliseconds(5000));
