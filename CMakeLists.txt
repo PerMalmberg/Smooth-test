@@ -11,7 +11,8 @@ set(IDF_PATH /home/permal/esp/esp-idf)
 #add_definitions(-DTEST_TIMER)
 #add_definitions(-DTEST_NETWORK)
 #add_definitions(-DTEST_RGB_LED -DESP_PLATFORM)
-add_definitions(-DTEST_JSON)
+#add_definitions(-DTEST_JSON)
+add_definitions(-DTEST_PUBLISH)
 
 
 include_directories(main
@@ -27,7 +28,9 @@ set(SOURCE_FILES
         main/test/test_network.cpp
         main/test/test_rgb_led.h
         main/test/test_json.h
-        main/test/test_json.cpp)
+        main/test/test_json.cpp
+        main/test/test_publish.h
+        main/test/test_publish.cpp)
 
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 add_subdirectory(components/Smooth)
