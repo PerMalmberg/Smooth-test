@@ -27,6 +27,7 @@ set(SOURCE_FILES
         main/test/test_network.h
         main/test/test_network.cpp
         main/test/test_rgb_led.h
+        main/test/test_rgb_led.cpp
         main/test/test_json.h
         main/test/test_json.cpp
         main/test/test_publish.h
