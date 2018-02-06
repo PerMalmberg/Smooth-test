@@ -11,8 +11,8 @@ set(IDF_PATH /home/permal/esp/esp-idf)
 #add_definitions(-DTEST_TIMER)
 #add_definitions(-DTEST_NETWORK)
 #add_definitions(-DTEST_RGB_LED -DESP_PLATFORM)
-#add_definitions(-DTEST_JSON)
-add_definitions(-DTEST_PUBLISH)
+add_definitions(-DTEST_JSON)
+#add_definitions(-DTEST_PUBLISH)
 
 
 include_directories(main

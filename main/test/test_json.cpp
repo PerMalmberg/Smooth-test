@@ -157,6 +157,23 @@ void TestApp::tick()
         assert(!v["bool"].get_bool(true));
         v["bool"].set(true);
         assert(v["bool"].get_bool(false));
+
+        v["value"] = "asdf";
+        assert(v["value"] == "asdf");
+        v.erase("value");
+        assert(v["value"].get_string("aaa") == "aaa");
+    }
+
+    {
+        Value v{};
+        v["a"][0] = 0;
+        v["a"][1] = 1;
+        v["a"][2] = 2;
+        assert(v["a"].get_array_size() == 3);
+        v["a"].erase(1);
+        assert(v["a"].get_array_size() == 2);
+        assert(v["a"][0] == 0);
+        assert(v["a"][1] == 2);
     }
 }
 
