@@ -23,6 +23,7 @@ class TestApp
 
         void init() override;
         void event(const smooth::application::network::mqtt::MQTTData& event) override;
+        void send_message();
 
         void tick() override;
 

@@ -43,23 +43,26 @@ void TestApp::init()
     wifi.connect_to_ap();
 #endif
 
-
-
     client.connect_to(std::make_shared<network::IPv4>(broker, 1883), true);
-#ifdef ESP_PLATFORM
-    client.subscribe("To:ESP32", QoS::EXACTLY_ONCE);
-    client.publish("To:Linux", "Message to Linux", QoS::EXACTLY_ONCE, false);
-    client.subscribe("$SYS/broker/uptime", QoS::AT_LEAST_ONCE);
-#else
     client.subscribe("network_test", QoS::EXACTLY_ONCE);
-    client.publish("network_test", "Message to myself", QoS::EXACTLY_ONCE, false);
-#endif
+    client.subscribe("$SYS/broker/uptime", QoS::AT_LEAST_ONCE);
+    send_message();
 }
 
 void TestApp::event(const smooth::application::network::mqtt::MQTTData& event)
 {
     Log::info("Rec", Format("T:{1}, M:{2}", Str(event.first), Array(event.second, true)));
 
+    send_message();
+}
+
+void TestApp::tick()
+{
+    client.publish("network_test", "Message", QoS::EXACTLY_ONCE, false);
+}
+
+void TestApp::send_message()
+{
     static uint32_t len = 0;
 
     std::string rep(len, 'Q');
@@ -92,11 +95,6 @@ void TestApp::event(const smooth::application::network::mqtt::MQTTData& event)
         led.clr();
     }
 #endif
-}
-
-void TestApp::tick()
-{
-    client.publish("network_test", "Message", QoS::EXACTLY_ONCE, false);
 }
 
 
