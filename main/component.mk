@@ -1,3 +1,4 @@
+# https://github.com/espressif/esp-idf/issues/1445
 CPPFLAGS += -D_GLIBCXX_USE_C99
 
 ### Select a single test application to build

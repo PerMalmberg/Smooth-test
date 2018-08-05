@@ -26,10 +26,10 @@ int main()
 {
     // Create the application, it will run on the main task
     // so set an appropriate stack size in the config.
-    TestApp app;
+    auto app = std::make_unique<TestApp>();
 
     // Start the application. Note that this function never returns.
-    app.start();
+    app->start();
 
     return 0;
 }
