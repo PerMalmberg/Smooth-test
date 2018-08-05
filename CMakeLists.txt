@@ -7,11 +7,13 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -fsanitize=address -fsanitize=b
 
 set(IDF_PATH /home/permal/esp/esp-idf)
 
+#add_definitions(-DTEST_HELLO_WORLD)
+add_definitions(-DTEST_WROVER_KIT_RGB_BLINKY)
 #add_definitions(-DTEST_QUEUE)
 #add_definitions(-DTEST_TIMER)
 #add_definitions(-DTEST_NETWORK)
 #add_definitions(-DTEST_RGB_LED -DESP_PLATFORM)
-add_definitions(-DTEST_JSON)
+#add_definitions(-DTEST_JSON)
 #add_definitions(-DTEST_PUBLISH)
 
 
@@ -20,6 +22,10 @@ include_directories(main
 
 set(SOURCE_FILES
         main/main.cpp
+        main/test/test_hello_world.h
+        main/test/test_hello_world.cpp
+        main/test/test_wrover_kit_blinky.cpp
+        main/test/test_wrover_kit_blinky.h
         main/test/test_queue.h
         main/test/test_queue.cpp
         main/test/test_timer.h

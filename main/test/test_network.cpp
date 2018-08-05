@@ -26,7 +26,7 @@ TestApp::TestApp()
           mqtt_data("mqtt_data", 10, *this, *this),
           client(client_id, seconds(10), 8192, 10, mqtt_data)
 #ifdef ESP_PLATFORM
-          ,led(GPIO_NUM_5, true, false, true, true)
+          ,led(GPIO_NUM_4, true, false, true, true)
 #endif
 
 {

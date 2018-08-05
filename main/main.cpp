@@ -1,5 +1,7 @@
 
 
+#include <test/test_hello_world.h>
+#include <test/test_wrover_kit_blinky.h>
 #include <test/test_queue.h>
 #include <test/test_timer.h>
 #include <test/test_network.h>
